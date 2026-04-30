@@ -411,62 +411,98 @@ def add_habit_dialog():
         if name.strip():
             conn = get_db_connection()
             c = conn.cursor()
-            c.execute("INSERT INTO habits (user_id, name, duration, description, icon_key) VALUES (?, ?, ?, ?, ?)",
+            c.execute("INSERT INTO habits (history[], user_id, name, duration, description, icon_key) VALUES (?, ?, ?, ?, ?)",
                       (USER_ID, name.strip(), duration, "", icon_key))
             conn.commit()
             conn.close()
             st.rerun()
 
 
-@st.dialog("Статистика и история")
-def habit_dialog(habit_id, name, history):
-    st.write(f"### {name}")
+def calculate_streaks(history):
+    if not history:
+        return 0, 0
+    dates = sorted(set(history))
+    dates = [datetime.fromisoformat(d).date() for d in dates]
 
-    # Расчет серий
+    max_streak = 1
+    cur = 1
+    for i in range(1, len(dates)):
+        if (dates[i] - dates[i - 1]).days == 1:
+            cur += 1
+            max_streak = max(max_streak, cur)
+        else:
+            cur = 1
+
+    today = date.today()
+    streak = 0
+    d = today
+    while d.isoformat() in history:
+        streak += 1
+        d -= timedelta(days=1)
+    return streak, max_streak
+
+@st.dialog(" ")
+def habit_dialog(habit, i):
+    today = date.today()
+    key_month, key_year = f"month_{i}", f"year_{i}"
+    st.session_state.setdefault(key_month, today.month)
+    st.session_state.setdefault(key_year, today.year)
+    month, year = st.session_state[key_month], st.session_state[key_year]
+
+    st.markdown(f"<h3 style='text-align:center; margin-bottom:10px;'>{habit['name'].upper()} : КАЛЕНДАРЬ</h3>", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col1:
+        if st.button("←", key=f"prev_{i}"):
+            st.session_state[key_month] = 12 if month == 1 else month - 1
+            st.session_state[key_year] = year - 1 if month == 1 else year
+            st.rerun()
+    with col2:
+        st.markdown(f"<div style='text-align:center; font-weight:600'>{calendar.month_name[month]} {year}</div>", unsafe_allow_html=True)
+    with col3:
+        if st.button("→", key=f"next_{i}"):
+            st.session_state[key_month] = 1 if month == 12 else month + 1
+            st.session_state[key_year] = year + 1 if month == 12 else year
+            st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    history = habit.get("history", [])
+    cal = calendar.Calendar(firstweekday=0)
+    month_days = cal.monthdayscalendar(year, month)
+    week_days = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ", "ВС"]
+    cols = st.columns(7)
+    for i_d, d in enumerate(week_days):
+        cols[i_d].markdown(f"<div style='text-align:center; font-weight:600; color:#667'>{d}</div>", unsafe_allow_html=True)
+
+    for week in month_days:
+        cols = st.columns(7)
+        for i_d, day in enumerate(week):
+            if day == 0:
+                cols[i_d].markdown(" ")
+            else:
+                d_obj = date(year, month, day)
+                d_str = d_obj.isoformat()
+                done = d_str in history
+                is_today = d_obj == today
+                bg = "#5B8DBE" if done else "#F1F4F8"
+                color = "white" if done else "#334455"
+                border = "2px solid #5B8DBE" if is_today else "1px solid transparent"
+                cols[i_d].markdown(f"""
+                    <div style="margin:4px; padding:10px; border-radius:10px; background:{bg}; color:{color};
+                                text-align:center; font-weight:600; border:{border}; position:relative;">
+                        {day}
+                        {"<div style='position:absolute; bottom:4px; right:6px; font-size:12px;'>✓</div>" if done else ""}
+                    </div>
+                """, unsafe_allow_html=True)
+
     streak, max_streak = calculate_streaks(history)
-    col1, col2 = st.columns(2)
-    col1.metric("Текущая серия", f"{streak} дн.")
-    col2.metric("Рекорд", f"{max_streak} дн.")
+    today_done = today.isoformat() in history
+    flame = lambda active: f'<svg width="24" height="24" viewBox="0 0 24 24"><path fill="{"#2735F5" if active else "#BCBCC2"}" d="M13 2C13 2 8 8 8 12a4 4 0 0 0 8 0c0-3-3-7-3-10z"/><path fill="{"#FFA726" if active else "#BCBCC2"}" d="M12 14a2 2 0 0 0 2-2c0-1.5-1.5-3-2-4-0.5 1-2 2.5-2 4a2 2 0 0 0 2 2z"/></svg>'
 
-    st.write("---")
-    st.write("**Календарь достижений:**")
-
-    # Формируем события для календаря (отмеченные дни)
-    # history — это список строк ['2026-04-01', '2026-04-02', ...]
-    calendar_events = [
-        {
-            "title": "✅",
-            "start": d,
-            "end": d,
-            "display": "background",
-            "color": "#28C76F",
-        }
-        for d in history
-    ]
-
-    calendar_options = {
-        "editable": False,
-        "selectable": False,
-        "headerToolbar": {
-            "left": "today",
-            "center": "title",
-            "right": "prev,next",
-        },
-        "initialView": "dayGridMonth",
-    }
-
-    # Отображаем календарь
-    calendar(events=calendar_events, options=calendar_options, key=f"cal_{habit_id}")
-
-    st.write("---")
-    if st.button("🗑 Удалить привычку", type="secondary", use_container_width=True):
-        conn = get_db_connection()
-        c = conn.cursor()
-        c.execute("DELETE FROM habits WHERE id = ?", (habit_id,))
-        c.execute("DELETE FROM habit_logs WHERE habit_id = ?", (habit_id,))
-        conn.commit()
-        conn.close()
-        st.rerun()
+    c1, c2 = st.columns(2)
+    c1.markdown(f'<div style="display:flex;align-items:center;gap:8px;">{flame(today_done)} <b>{streak}</b> Текущ.</div>', unsafe_allow_html=True)
+    c2.markdown(f'<div style="display:flex;align-items:center;gap:8px;">{flame(True)} <b>{max_streak}</b> Макс.</div>', unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
 
 # ---------------- 7. ГЛАВНЫЙ ЭКРАН ----------------
