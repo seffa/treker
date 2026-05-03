@@ -20,80 +20,69 @@ def check_password(password, hashed):
 st.markdown("""
 <style>
     /* --- НАВИГАЦИЯ (САЙДБАР) --- */
-    [data-testid="stSidebarNav"] {display: none;}
-    section[data-testid="stSidebar"] { width: 150px !important; min-width: 150px !important; }
-    .nav-tile, [data-testid="stSidebar"] .stPageLink a {
-        display: flex !important; align-items: center !important; justify-content: center !important;
-        width: 85px !important; height: 85px !important; margin: 15px auto !important;
-        border-radius: 20px !important; background-color: #8fa4bc !important;
-        transition: all 0.3s ease !important; text-decoration: none !important;
+[data-testid="stHeader"] { background: rgba(0,0,0,0); } /* Прозрачный хедер */
+[data-testid="stSidebarNav"] {display: none;}
+section[data-testid="stSidebar"] { width: 150px !important; min-width: 150px !important; }
 
-    }
-    /* --- НАВИГАЦИЯ (САЙДБАР) --- */
-    [data-testid="stHeader"] { background: rgba(0,0,0,0); } /* Прозрачный хедер */
-    [data-testid="stSidebarNav"] {display: none;}
-    section[data-testid="stSidebar"] { width: 150px !important; min-width: 150px !important; }
+/* Общий стиль для плиток и ссылок */
+.nav-tile, [data-testid="stSidebar"] .stPageLink a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 85px !important;
+    height: 85px !important;
+    margin: 15px auto !important;
+    border-radius: 20px !important;
+    color: white !important; /* Цвет текста/иконки */
+    background-color: #8fa4bc !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    /* Убираем стандартный зазор между иконкой и скрытым текстом */
+    gap: 0 !important; 
+}
+
+/* ИСПРАВЛЕНИЕ ЦЕНТРИРОВАНИЯ: Сбрасываем внутренние контейнеры Streamlit */
+[data-testid="stSidebar"] .stPageLink a div {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Полностью убираем влияние текста */
+[data-testid="stSidebar"] .stPageLink a p {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Ссылка в активном состоянии */
+[data-testid="stSidebar"] .stPageLink a[aria-current="page"] { 
+    background-color: #FF1493 !important; 
+}
+
+/* СТИЛИЗАЦИЯ ИКОНОК: Убираем лишние отступы */
+[data-testid="stSidebar"] .stPageLink a svg,
+[data-testid="stSidebar"] .stPageLink a i,
+[data-testid="stSidebar"] .stPageLink a span[translate="no"] {
+    font-size: 35px !important; 
+    width: 35px !important;
+    height: 35px !important;
+    line-height: 35px !important;
+    margin: 0 !important; /* Обнуляем margin, который Streamlit добавляет справа */
+    padding: 0 !important;
+    display: block !important;
+    fill: white !important; /* Для SVG */
+    color: white !important; /* Для шрифтовых иконок */
+}
+
+/* Ховер эффект */
+[data-testid="stSidebar"] .stPageLink a:hover {
+    background-color: #70869d !important;
+    transform: scale(1.05);
+}
     
-    /* Общий стиль для плиток и ссылок */
-    .nav-tile, [data-testid="stSidebar"] .stPageLink a {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 85px !important;
-        height: 85px !important;
-        margin: 15px auto !important;
-        border-radius: 20px !important;
-        color: white !important; /* Цвет текста/иконки */
-        background-color: #8fa4bc !important;
-        transition: all 0.3s ease !important;
-        text-decoration: none !important;
-        /* Убираем стандартный зазор между иконкой и скрытым текстом */
-        gap: 0 !important; 
-    }
-    
-    /* ИСПРАВЛЕНИЕ ЦЕНТРИРОВАНИЯ: Сбрасываем внутренние контейнеры Streamlit */
-    [data-testid="stSidebar"] .stPageLink a div {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    /* Полностью убираем влияние текста */
-    [data-testid="stSidebar"] .stPageLink a p {
-        display: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-    }
-    
-    /* Ссылка в активном состоянии */
-    [data-testid="stSidebar"] .stPageLink a[aria-current="page"] { 
-        background-color: #FF1493 !important; 
-    }
-    
-    /* СТИЛИЗАЦИЯ ИКОНОК: Убираем лишние отступы */
-    [data-testid="stSidebar"] .stPageLink a svg,
-    [data-testid="stSidebar"] .stPageLink a i,
-    [data-testid="stSidebar"] .stPageLink a span[translate="no"] {
-        font-size: 35px !important; 
-        width: 35px !important;
-        height: 35px !important;
-        line-height: 35px !important;
-        margin: 0 !important; /* Обнуляем margin, который Streamlit добавляет справа */
-        padding: 0 !important;
-        display: block !important;
-        fill: white !important; /* Для SVG */
-        color: white !important; /* Для шрифтовых иконок */
-    }
-    
-    /* Ховер эффект */
-    [data-testid="stSidebar"] .stPageLink a:hover {
-        background-color: #70869d !important;
-        transform: scale(1.05);
-    }
-    header, footer, #MainMenu { visibility: hidden; display: none; }
-    }
     /* --- ЛЕВАЯ ПАНЕЛЬ (ПРОФИЛЬ) --- */
     .profile-container {
         background: #ffffff;
@@ -134,11 +123,18 @@ st.markdown("""
         font-size: 12px; 
         color: #445566 !important; 
         font-weight: 500;
-        line-height: 1.4; 
+        line-height: 1.3;
+        margin-top: 5px;
+        min-height: 32px; /* Резервируем место ровно под две строки */
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Ограничиваем до 2 строк */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .locked { filter: grayscale(100%); opacity: 0.4; border: 2px dashed #ced4da; }
-    .unlocked { border: 2px solid #AFEEEE; box-shadow: 0 8px 20px rgba(70, 130, 180, 0.1); }
+    .locked { filter: grayscale(100%); opacity: 0.8; border: 4px dashed #ced4da; }
+    .unlocked { border: 2px solid #4A90E2; box-shadow: 0 8px 20px rgba(74, 144, 226, 0.38); }
 
     .progress-tag {
         margin-top: 15px; font-size: 11px; font-weight: 700;
@@ -232,16 +228,18 @@ if st.session_state.user:
     # Список достижений (Только Material Icons)
     # Названия иконок можно брать тут: https://fonts.google.com/icons
     achievements = [
-        {"icon": "auto_awesome", "name": "Первооткрыватель", "desc": "Создана 1-я полезная привычка", "req": 1,
+        {"icon": "luggage", "name": "Бипки", "desc": "Что такое бипки?<br>Зарегистрироваться", "req": 0,
          "cur": h_count},
-        {"icon": "local_fire_department", "name": "В ударе", "desc": "Выполнил 5 задач из списка", "req": 5,
+        {"icon": "wind_power", "name": "Воздух", "desc": "Что-то подуло<br>Вы создали первую привычку", "req": 1,
          "cur": l_count},
-        {"icon": "workspace_premium", "name": "Коллекционер", "desc": "У тебя уже 10 активных целей", "req": 10,
+        {"icon": "lyrics", "name": "Оксимирон", "desc": "Ты выполнила задание на 5+<br>Вы создали пять привычек", "req": 5,
+         "cur": l_count},
+        {"icon": "family_restroom", "name": "Форсаж", "desc": "Последний заезд<br>Вы создали десять привычек", "req": 10,
          "cur": h_count},
-        {"icon": "military_tech", "name": "Железная воля", "desc": "50 отметок в твоем журнале", "req": 50,
+        {"icon": "self_improvement", "name": "Смерть в нищете", "desc": "принять/принять<br>Задонатить создателям", "req": 50,
          "cur": l_count},
-        {"icon": "stars", "name": "Триатлон", "desc": "3 привычки одновременно", "req": 3, "cur": h_count},
-        {"icon": "emoji_events", "name": "Чемпион", "desc": "Достигнут рубеж в 20 отметок", "req": 20, "cur": l_count}
+        {"icon": "accessible_forward", "name": "Самохвалов", "desc": "Почему?<br>Экспортировать", "req": 3, "cur": h_count},
+        {"icon": "storm", "name": "Король воздуха", "desc": "теперь точно воздух<br>Потерять серию привычки", "req": 20, "cur": l_count}
     ]
 
     col_left, col_right = st.columns([1, 2.5], gap="large")
@@ -269,7 +267,7 @@ if st.session_state.user:
         for i, ach in enumerate(achievements):
             is_open = ach['cur'] >= ach['req']
             status_class = "unlocked" if is_open else "locked"
-            icon_color = "#ADD8E6" if is_open else "#adb5bd"
+            icon_color = "#4A90E2" if is_open else "#adb5bd"
 
             with grid_cols[i % 3]:
                 st.markdown(f"""
@@ -288,6 +286,6 @@ if st.session_state.user:
 else:
     # Если не залогинен
     st.markdown('<div class="auth-btn-container">', unsafe_allow_html=True)
-    if st.button("Войти в профиль", use_container_width=False, type="secondary", key="main_auth"):
+    if st.button("🔑 Войти в профиль", use_container_width=False, type="primary", key="main_auth"):
         auth_modal()
     st.markdown('</div>', unsafe_allow_html=True)
