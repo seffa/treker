@@ -8,8 +8,10 @@ st.set_page_config(page_title="Настройки", layout="wide", initial_sideb
 if "user" not in st.session_state:
     st.session_state.user = None
 
+
 def get_db_connection():
     return sqlite3.connect('treker_bd.db', check_same_thread=False)
+
 
 # Инициализация таблицы настроек
 def init_settings_db():
@@ -25,9 +27,11 @@ def init_settings_db():
     conn.commit()
     conn.close()
 
+
 init_settings_db()
 
-# Получение настроек пользователя (возвращает 2 значения)
+
+# Получение настроек пользователя
 def load_settings(user_id):
     conn = get_db_connection()
     c = conn.cursor()
@@ -40,24 +44,103 @@ def load_settings(user_id):
     conn.close()
     return settings
 
-# ---------------- 2. ПРИМЕНЕНИЕ ШРИФТА (CSS) ----------------
+
+# ---------------- 2. ПРИМЕНЕНИЕ ШРИФТА И ЦВЕТОВ (CSS) ----------------
 if st.session_state.user:
-    # ИСПРАВЛЕНО: Распаковываем 2 значения, а не 3
     current_week, current_font = load_settings(st.session_state.user['id'])
 
-    font_css = ""
     if current_font == "Мелкий":
-        font_css = "html, body, p, div, span, label { font-size: 14px !important; }"
+        base_size, h_size = "14px", "24px"
     elif current_font == "Крупный":
-        font_css = "html, body, p, div, span, label { font-size: 18px !important; }"
+        base_size, h_size = "20px", "36px"
+    else:
+        base_size, h_size = "16px", "28px"
 
-    if font_css:
-        st.markdown(f"<style>{font_css}</style>", unsafe_allow_html=True)
+    font_css = f"""
+            <style>
+                .block-container {{ padding-top: 1rem !important; }}
+
+                .page-title {{ 
+                    text-align: center; margin-bottom: 80px !important; 
+                    font-size: {h_size} !important; font-weight: 700; color: #334455; 
+                }}
+
+                html, body, [data-testid="stWidgetLabel"] p, .stMarkdown p, 
+                .stButton button, .stDownloadButton button, .stSelectbox div, 
+                .stSlider div, .stRadio label, .stTextInput input, label {{
+                    font-size: {base_size} !important;
+                }}
+
+                div[data-testid="stTickBar"] {{ display: none !important; }}
+
+                /* --- ТЕ САМЫЕ ЗАКРУГЛЕННЫЕ КНОПКИ --- */
+                .stButton button, .stDownloadButton button {{
+                    border-radius: 10px !important; /* Овальные */
+                    width: fit-content !important;  /* Не на всю ширину */
+                    min-width: 220px !important;    /* Но солидные */
+                    margin: 0 auto !important;      /* Центровка */
+                    display: block !important;
+                    padding: 0.6rem 2.5rem !important;
+                    font-weight: 600 !important;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    border: none !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 0.5px !important;
+                }}
+
+                .stButton button:active, .stDownloadButton button:active {{
+                    transform: scale(0.95) !important;
+                }}
+
+                /* ЦВЕТ: СОХРАНИТЬ (PRIMARY) */
+                button[kind="primary"] {{
+                    background: linear-gradient(135deg, #5B8DBE 0%, #3a6a99 100%) !important;
+                    color: white !important;
+                    box-shadow: 0 4px 15px rgba(91, 141, 190, 0.4) !important;
+                }}
+                button[kind="primary"]:hover {{
+                    box-shadow: 0 6px 20px rgba(91, 141, 190, 0.6) !important;
+                    transform: translateY(-2px);
+                }}
+
+                /* ЦВЕТ: ЭКСПОРТ (DOWNLOAD) */
+                .stDownloadButton button {{
+                    background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%) !important;
+                    color: #5B8DBE !important;
+                    border: 1px solid #5B8DBE !important;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+                }}
+                .stDownloadButton button:hover {{
+                    background: #5B8DBE !important;
+                    color: white !important;
+                    box-shadow: 0 6px 15px rgba(91, 141, 190, 0.3) !important;
+                }}
+
+                /* ЦВЕТ: СБРОСИТЬ (DANGER) */
+                div.stButton > button:not([kind="primary"]) {{
+                    background: linear-gradient(135deg, #ff4b4b 0%, #d62d2d 100%) !important;
+                    color: white !important;
+                    box-shadow: 0 4px 15px rgba(255, 75, 75, 0.3) !important;
+                }}
+                div.stButton > button:not([kind="primary"]):hover {{
+                    box-shadow: 0 6px 20px rgba(255, 75, 75, 0.5) !important;
+                    transform: translateY(-2px);
+                }}
+
+                [data-testid="stSidebar"] .material-icons, 
+                [data-testid="stSidebar"] svg,
+                [data-testid="stSidebar"] span {{
+                    font-size: 35px !important;
+                }}
+            </style>
+            """
+    st.markdown(font_css, unsafe_allow_html=True)
 
 st.markdown("""
 <style>
-/* --- НАВИГАЦИЯ (САЙДБАР) --- */
-    [data-testid="stHeader"] { background: rgba(0,0,0,0); } 
+    /* --- НАВИГАЦИЯ (САЙДБАР) --- */
+    .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
+    [data-testid="stHeader"] { background: rgba(0,0,0,0); }
     [data-testid="stSidebarNav"] {display: none;}
     section[data-testid="stSidebar"] { width: 150px !important; min-width: 150px !important; }
 
@@ -73,7 +156,7 @@ st.markdown("""
         background-color: #8fa4bc !important;
         transition: all 0.3s ease !important;
         text-decoration: none !important;
-        gap: 0 !important; 
+        gap: 0 !important;
     }
 
     [data-testid="stSidebar"] .stPageLink a div { display: flex !important; align-items: center !important; justify-content: center !important; }
@@ -88,10 +171,66 @@ st.markdown("""
     }
 
     [data-testid="stSidebar"] .stPageLink a:hover { background-color: #70869d !important; transform: scale(1.05); }
+
     header, footer, #MainMenu { visibility: hidden; display: none; }
 
-    .page-title { text-align: center; margin: 30px 0; font-size: 32px; font-weight: 700; color: #334455; }
     .settings-section { background: white; padding: 25px; border-radius: 20px; border: 1px solid #E0E6ED; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+    /* Базовая карточка */
+    .inner-setting-card {
+        background: #ffffff;
+        border: 1px solid rgba(224, 230, 237, 0.5);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 25px;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03), 0 10px 15px -3px rgba(91, 141, 190, 0.05);
+    }
+
+    .inner-setting-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(91, 141, 190, 0.4);
+        box-shadow: 0 20px 25px -5px rgba(91, 141, 190, 0.15), 0 10px 10px -5px rgba(91, 141, 190, 0.1);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .section-header i {
+        background: #f0f4f8;
+        padding: 8px;
+        border-radius: 12px;
+        color: #5B8DBE;
+    }
+
+    .section-header span {
+        color: #334455;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+
+    .report-card { background-color: #f0f4f8 !important; border: 2px solid #5B8DBE !important; }
+    .report-card { border: 2px solid #4A90E2; box-shadow: 0 8px 20px rgba(91, 141, 190, 0.38); }
+
+    .danger-card { background: linear-gradient(135deg, #fff5f5 0%, #f0f2f6 100%) !important; border: 2px solid #ff4b4b !important; }
+    .danger-card { border: 2px solid #4A90E2; box-shadow: 0 8px 20px rgba(255, 75, 75, 0.38); }
+    
+    .danger-card { background: linear-gradient(135deg, #fff5f5 0%, #f0f2f6 100%) !important; border: 2px solid #ff4b4b !important; }
+    .danger-card { border: 2px solid #4A90E2; box-shadow: 0 8px 20px rgba(255, 75, 75, 0.38); }
+
+    .setting-label {
+        font-weight: 600 !important;
+        color: #4A5568 !important;
+        margin-bottom: 10px !important;
+        display: block;
+        font-size: 20px !important; 
+    }
+        
 </style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 """, unsafe_allow_html=True)
@@ -105,7 +244,6 @@ with st.sidebar:
     st.page_link("pages/settings2.py", label="Settings", icon=":material/settings:")
     st.page_link("pages/contacts2.py", label="Chat", icon=":material/chat:")
 
-# ---------------- 4. ПРОВЕРКА АВТОРИЗАЦИИ ----------------
 st.markdown('<div class="page-title">НАСТРОЙКИ</div>', unsafe_allow_html=True)
 
 if not st.session_state.get("user"):
@@ -114,11 +252,12 @@ if not st.session_state.get("user"):
 
 user_id = st.session_state.user['id']
 
-# ---------------- 5. ДИАЛОГИ И ФУНКЦИИ ----------------
-@st.dialog("⚠️ Сброс привычек")
+
+# ---------------- 4. ДИАЛОГИ И ФУНКЦИИ ----------------
+@st.dialog("Сброс привычек")
 def confirm_reset():
-    st.write("Вы уверены, что хотите удалить **все привычки и прогресс**? Это действие нельзя отменить.")
-    if st.button("Да, удалить всё", type="primary", use_container_width=True):
+    st.write("Вы уверены, что хотите удалить **все привычки и прогресс**?")
+    if st.button("Да, удалить всё", use_container_width=True):  # Убрал type="primary" здесь, чтобы была красной по CSS
         conn = get_db_connection()
         c = conn.cursor()
         c.execute("DELETE FROM habit_logs WHERE habit_id IN (SELECT id FROM habits WHERE user_id=?)", (user_id,))
@@ -128,6 +267,7 @@ def confirm_reset():
         st.success("Все привычки успешно удалены.")
         st.rerun()
 
+
 def generate_html_report(uid, username):
     conn = get_db_connection()
     c = conn.cursor()
@@ -135,100 +275,78 @@ def generate_html_report(uid, username):
 
     html = f"""
     <html>
-    <head>
-        <meta charset='utf-8'>
-        <title>Экспорт привычек</title>
-        <style>
-            body {{ font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #334455; }}
-            h1 {{ color: #4A90E2; border-bottom: 2px solid #E0E6ED; padding-bottom: 10px; }}
-            h3 {{ color: #111111; margin-top: 30px; }}
-            ul {{ background: #f8f9fa; padding: 20px 40px; border-radius: 12px; }}
-            li {{ margin-bottom: 5px; }}
-        </style>
-    </head>
-    <body>
+    <head><meta charset='utf-8'><title>Отчет</title></head>
+    <body style="font-family: sans-serif; padding: 40px; color: #334455;">
         <h1>📊 Отчет по привычкам: {username}</h1>
     """
-
-    if not habits:
-        html += "<p>У вас пока нет добавленных привычек.</p>"
-
     for h_id, h_name in habits:
         logs = c.execute("SELECT log_date FROM habit_logs WHERE habit_id=? ORDER BY log_date", (h_id,)).fetchall()
         html += f"<h3>🎯 {h_name}</h3><ul>"
         if logs:
-            for log in logs:
-                html += f"<li>Выполнено: {log[0]}</li>"
+            for log in logs: html += f"<li>Выполнено: {log[0]}</li>"
         else:
-            html += "<li><i>Отметок пока нет</i></li>"
+            html += "<li><i>Отметок нет</i></li>"
         html += "</ul>"
-
     html += "</body></html>"
     conn.close()
     return html
 
-# ---------------- 6. ОСНОВНОЙ КОНТЕНТ НАСТРОЕК ----------------
 
-# ИСПРАВЛЕНО: Убран skip_double, теперь принимаем только 2 значения
+# ---------------- 5. ОСНОВНОЙ КОНТЕНТ ----------------
 week_start, font_size = load_settings(user_id)
-
 col1, col2 = st.columns([1.5, 1], gap="large")
 
 with col1:
-    st.markdown('<div class="settings-section">', unsafe_allow_html=True)
-    st.subheader("⚙️ Внешний вид и поведение")
-
+    st.markdown(f"""
+        <div class="inner-setting-card">
+            <div class="section-header">
+                <i class="material-icons" style="color: #5B8DBE;">palette</i>
+                <span>Внешний вид и поведение</span>
+            </div>
+    """, unsafe_allow_html=True)
+    st.markdown('<span class="setting-label">Управление размером текста</span>', unsafe_allow_html=True)
     font_options = ["Мелкий", "Средний", "Крупный"]
-    safe_font_value = font_size if font_size in font_options else "Средний"
+    new_font = st.select_slider("Scale", options=font_options,
+                                value=font_size if font_size in font_options else "Средний",
+                                label_visibility="collapsed")
 
-    new_font = st.select_slider(
-        "Размер шрифта",
-        options=font_options,
-        value=safe_font_value
-    )
+    st.write("")
+    st.markdown('<span class="setting-label">Начало календарной недели</span>', unsafe_allow_html=True)
+    new_week = st.radio("Week", ["Понедельник", "Воскресенье"], index=0 if week_start == "Понедельник" else 1,
+                        horizontal=True, label_visibility="collapsed")
 
-    new_week = st.radio(
-        "Начало недели",
-        ["Понедельник", "Воскресенье"],
-        index=0 if week_start == "Понедельник" else 1,
-        horizontal=True
-    )
-
-    if st.button("Сохранить изменения", type="primary"):
+    st.write("")
+    if st.button("Сохранить все изменения", type="primary", use_container_width=True):
         conn = get_db_connection()
-        conn.execute("""
-            UPDATE user_settings 
-            SET week_start=?, font_size=? 
-            WHERE user_id=?
-        """, (new_week, new_font, user_id))
+        conn.execute("UPDATE user_settings SET week_start=?, font_size=? WHERE user_id=?",
+                     (new_week, new_font, user_id))
         conn.commit()
         conn.close()
-        st.success("Настройки успешно сохранены!")
         st.rerun()
-
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
-    st.markdown('<div class="settings-section">', unsafe_allow_html=True)
-    st.subheader("📄 Экспорт данных")
-    st.write("Сохраните историю своих привычек в удобном формате.")
-
-    html_data = generate_html_report(user_id, st.session_state.user.get('nick', 'Пользователь'))
-
-    st.download_button(
-        label="Экспорт в HTML",
-        data=html_data,
-        file_name="Habits_Report.html",
-        mime="text/html",
-        use_container_width=True
-    )
+    st.markdown("""
+        <div class="inner-setting-card report-card">
+            <div class="section-header">
+                <i class="material-icons" style="color: #5B8DBE;">file_download</i>
+                <span>Экспорт данных</span>
+            </div>
+    """, unsafe_allow_html=True)
+    st.write("Сохраните историю своих привычек в формате HTML.")
+    html_data = generate_html_report(user_id, st.session_state.user.get('nick', 'User'))
+    st.download_button(label="Экспорт в HTML", data=html_data, file_name="Report.html", mime="text/html",
+                       use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="settings-section" style="border-color: #ff4b4b;">', unsafe_allow_html=True)
-    st.subheader("🚨 Опасная зона")
+    st.markdown("""
+        <div class="inner-setting-card danger-card">
+            <div class="section-header">
+                <i class="material-icons" style="color: #ff4b4b;">warning</i>
+                <span style="color: #ff4b4b;">Опасная зона</span>
+            </div>
+    """, unsafe_allow_html=True)
     st.write("Сброс полностью удалит все ваши привычки и историю их выполнения.")
-
     if st.button("Сбросить все привычки", use_container_width=True):
         confirm_reset()
-
     st.markdown('</div>', unsafe_allow_html=True)
