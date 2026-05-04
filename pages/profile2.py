@@ -180,7 +180,7 @@ def auth_modal():
         with st.form("reg_form", border=False):
             nick = st.text_input("Логин", key="reg_nick", placeholder="Придумайте логин")
             contact_beauty = st.text_input("Почта", key="reg_contact", placeholder="example@mail.com")
-            p1 = st.text_input("Пароль", type="password", key="reg_p1", placeholder="Минимум 6 символов")
+            p1 = st.text_input("Пароль", type="password", key="reg_p1", placeholder="Введите пароль")
             p2 = st.text_input("Повторите пароль", type="password", key="reg_p2", placeholder="Пароли должны совпадать")
             st.write("")
             if st.form_submit_button("Зарегистрироваться", use_container_width=True, type="primary"):
