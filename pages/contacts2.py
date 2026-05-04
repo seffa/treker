@@ -1,9 +1,11 @@
 import streamlit as st
 import sqlite3
+import streamlit.components.v1 as components
+import base64
 
 st.set_page_config(page_title="Контакты", layout="wide", initial_sidebar_state="expanded")
 
-# Инициализация сессии (ДОЛЖНА БЫТЬ В САМОМ НАЧАЛЕ)
+# Инициализация сессии
 if "user" not in st.session_state:
     st.session_state.user = None
 
@@ -11,25 +13,31 @@ if "user" not in st.session_state:
 def get_db_connection():
     return sqlite3.connect('treker_bd.db', check_same_thread=False)
 
+
+def img_to_base64(path):
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+
+img3 = img_to_base64("styles/call.png")
+
+# ТВОИ СТИЛИ (остались без изменений, убрал только тег <script> из markdown)
 st.markdown("""
 <style>
-
     .block-container {
         padding-top: 1rem !important;
         padding-bottom: 0rem !important;
+        position: relative;
     }
-    
-    /* Убираем лишние пустые блоки сверху */
+
     [data-testid="stVerticalBlock"] > div:first-child {
         margin-top: -30px !important; 
     }
-    
-    /* --- НАВИГАЦИЯ (САЙДБАР) --- */
-    [data-testid="stHeader"] { background: rgba(0,0,0,0); } /* Прозрачный хедер */
+
+    [data-testid="stHeader"] { background: rgba(0,0,0,0); } 
     [data-testid="stSidebarNav"] {display: none;}
     section[data-testid="stSidebar"] { width: 150px !important; min-width: 150px !important; }
-    
-    /* Общий стиль для плиток и ссылок */
+
     .nav-tile, [data-testid="stSidebar"] .stPageLink a {
         display: flex !important;
         align-items: center !important;
@@ -38,22 +46,19 @@ st.markdown("""
         height: 85px !important;
         margin: 15px auto !important;
         border-radius: 20px !important;
-        color: white !important; /* Цвет текста/иконки */
+        color: white !important; 
         background-color: #8fa4bc !important;
         transition: all 0.3s ease !important;
         text-decoration: none !important;
-        /* Убираем стандартный зазор между иконкой и скрытым текстом */
         gap: 0 !important; 
     }
-    
-    /* ИСПРАВЛЕНИЕ ЦЕНТРИРОВАНИЯ: Сбрасываем внутренние контейнеры Streamlit */
+
     [data-testid="stSidebar"] .stPageLink a div {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
     }
-    
-    /* Полностью убираем влияние текста */
+
     [data-testid="stSidebar"] .stPageLink a p {
         display: none !important;
         margin: 0 !important;
@@ -61,13 +66,11 @@ st.markdown("""
         width: 0 !important;
         height: 0 !important;
     }
-    
-    /* Ссылка в активном состоянии */
+
     [data-testid="stSidebar"] .stPageLink a[aria-current="page"] { 
         background-color: #FF1493 !important; 
     }
-    
-    /* СТИЛИЗАЦИЯ ИКОНОК: Убираем лишние отступы */
+
     [data-testid="stSidebar"] .stPageLink a svg,
     [data-testid="stSidebar"] .stPageLink a i,
     [data-testid="stSidebar"] .stPageLink a span[translate="no"] {
@@ -75,34 +78,32 @@ st.markdown("""
         width: 35px !important;
         height: 35px !important;
         line-height: 35px !important;
-        margin: 0 !important; /* Обнуляем margin, который Streamlit добавляет справа */
+        margin: 0 !important; 
         padding: 0 !important;
         display: block !important;
-        fill: white !important; /* Для SVG */
-        color: white !important; /* Для шрифтовых иконок */
+        fill: white !important; 
+        color: white !important; 
     }
-    
-    /* Ховер эффект */
+
     [data-testid="stSidebar"] .stPageLink a:hover {
         background-color: #70869d !important;
         transform: scale(1.05);
     }
     header, footer, #MainMenu { visibility: hidden; display: none; }
-    
+
     @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-    
+
     .page-header {
         font-family: 'Tahoma' !important;
-        font-size: 32px !important; /* Увеличил, чтобы было как на референсе */
+        font-size: 32px !important; 
         font-weight: 600 !important;
-        color: #314357 !important; /* Глубокий сине-серый с картинки */
+        color: #314357 !important; 
         text-align: center !important;
         text-transform: uppercase !important;
-        margin-top: 70px !important;   /* Обнуляем отступ */
-        margin-bottom: 120px !important;
+        margin-top: 70px !important;   
+        margin-bottom: 100px !important;
     }
 
-/* --- КАРТОЧКИ --- */
     .dev-card {
         display: flex;
         flex-direction: column;
@@ -139,8 +140,50 @@ st.markdown("""
 
     .dev-role { font-family: 'Tahoma', sans-serif; font-size: 14px; color: #7F8C8D; }
     .dev-email { font-family: 'Tahoma', sans-serif; font-size: 15px; color: #4A90E2; text-decoration: none; }
-    
-    </style>
+
+    /* --- КНОПКА ПОДДЕРЖКИ --- */
+    .support-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 50px;
+        margin-bottom: 20px;
+    }
+
+    .support-btn {
+        background-color: #8fa4bc !important; /* Цвет как у сайдбара */
+        color: white !important;
+        padding: 12px 30px !important;
+        border-radius: 20px !important; /* Скругление как у плиток */
+        text-decoration: none !important;
+        font-family: 'Tahoma', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 15px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+        border: none !important;
+        display: inline-block !important;
+    }
+
+    .support-btn:hover {
+        background-color: #70869d !important; /* Цвет ховера как у сайдбара */
+        transform: scale(1.05) !important;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
+    }
+
+    .img3 {
+        position: absolute;
+        bottom: 380px; /* Оставил примерно твою высоту над нижним рядом */
+        left: 50%; /* Двигаем начало картинки на центр экрана */
+        transform: translateX(-50%); /* Сдвигаем саму картинку влево на половину её ширины */
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .img3 img {
+        width: 185px !important;
+    }
+
+</style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 """, unsafe_allow_html=True)
 
@@ -155,13 +198,8 @@ with st.sidebar:
     st.page_link("pages/contacts2.py", label="Chat", icon=":material/chat:")
 
 
-
-
-# Функция для вывода карточки
+# Функция для вывода карточки (Убрали onclick, добавили data-email)
 def draw_contact(name, role, icon, email):
-
-    subject = "Трекер привычек"
-
     st.markdown(f"""
         <div class="dev-card">
             <div class="icon-circle">
@@ -169,24 +207,22 @@ def draw_contact(name, role, icon, email):
             </div>
             <div class="dev-name">{name}</div>
             <div class="dev-role">{role}</div>
-            <a href="mailto:{email}?subject={subject}" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               class="dev-email"
-               style="display: inline-block; cursor: pointer;">
+            <div class="dev-email copyable-email" 
+                 data-email="{email}"
+                 style="cursor: pointer; transition: 0.3s;">
                 {email}
-            </a>
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
 
-_, col1, col2, _ = st.columns([1.5, 2, 2, 1.5])
-with col1:
+col0, col1, col2 = st.columns(3)
+with col0:
     draw_contact("Самохвалов Семен", "Разработчик", "face", "scpsosat837@gmail.com")
+
 with col2:
     draw_contact("Кис Анна", "Разработчик", "face_2", "a-kisanna@yandex.ru")
-
-
+st.markdown("<br>", unsafe_allow_html=True)
 col3, col4, col5 = st.columns(3)
 with col3:
     draw_contact("Еганова Анастасия", "Менеджер команды", "face_4", "eganova.nastyaa@gmail.com")
@@ -194,3 +230,68 @@ with col4:
     draw_contact("Рябинина Ирина", "Дизайнер", "face_3", "irina_ryabinina2007@mail.ru")
 with col5:
     draw_contact("Григорян Нарек", "Дизайнер", "face_6", "narek02112020@gmail.com")
+
+st.markdown("""
+    <div class="support-container">
+        <a href="https://messenger.online.sberbank.ru/sl/8JxgkasHxxoOHS3Rh" target="_blank" class="support-btn">
+            Поддержать создателей
+        </a>
+    </div>
+""", unsafe_allow_html=True)
+
+# --- НЕВИДИМЫЙ СКРИПТ ДЛЯ РАБОТЫ БУФЕРА ОБМЕНА ---
+js_code = """
+<script>
+    const parentDoc = window.parent.document;
+
+    function attachCopyEvents() {
+        // Находим все элементы с классом copyable-email, на которых еще нет обработчика
+        const emails = parentDoc.querySelectorAll('.copyable-email:not(.js-bound)');
+
+        emails.forEach(el => {
+            el.classList.add('js-bound'); // Помечаем, что обработчик уже висит
+
+            el.addEventListener('click', function() {
+                const emailText = this.getAttribute('data-email');
+                const originalText = this.innerText;
+
+                // Функция визуального отклика
+                const showSuccess = () => {
+                    this.innerText = 'Скопировано!';
+                    this.style.color = '#2ECC71';
+                    setTimeout(() => {
+                        this.innerText = originalText;
+                        this.style.color = '#4A90E2';
+                    }, 1500);
+                };
+
+                // Пробуем скопировать через современный API
+                if (window.parent.navigator && window.parent.navigator.clipboard) {
+                    window.parent.navigator.clipboard.writeText(emailText).then(showSuccess);
+                } else {
+                    // Запасной план для старых браузеров
+                    const textArea = parentDoc.createElement("textarea");
+                    textArea.value = emailText;
+                    parentDoc.body.appendChild(textArea);
+                    textArea.select();
+                    parentDoc.execCommand('copy');
+                    parentDoc.body.removeChild(textArea);
+                    showSuccess();
+                }
+            });
+        });
+    }
+
+    // Запускаем интервал, потому что Streamlit постоянно перерисовывает DOM
+    setInterval(attachCopyEvents, 1000);
+</script>
+"""
+
+st.markdown(f"""
+    <div class="img3">
+        <img src="data:image/png;base64,{img3}">
+    </div>
+""", unsafe_allow_html=True)
+
+# Вставляем скрипт так, чтобы Streamlit его не вырезал (высота 0 делает его невидимым)
+components.html(js_code, height=0, width=0)
