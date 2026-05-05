@@ -3,6 +3,8 @@ import sqlite3
 import os
 from datetime import date, datetime, timedelta
 import calendar
+import base64
+import streamlit.components.v1 as components
 
 # ---------------- 1. КОНФИГУРАЦИЯ ----------------
 st.set_page_config(page_title="Habit Tracker", layout="wide", initial_sidebar_state="expanded")
@@ -54,6 +56,10 @@ def load_settings(uid):
     return res if res else (0, 'Понедельник', 'Средний')
 
 
+def img_to_base64(path):
+    import base64
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 if st.session_state.user:
     u_id = st.session_state.user.get('id', 1)
     s_skip, s_week, s_font = load_settings(u_id)
@@ -62,10 +68,42 @@ if st.session_state.user:
 else:
     s_skip, fdw, f_size = 0, 0, "17px"
 
+def img_to_base64(path):
+    import base64
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+img1 = img_to_base64("styles/gj.png")
+img2 = img_to_base64("styles/thumb.jpg")
+
+st.markdown(f"""
+<style>
+.bg-img {{
+    position: fixed;
+    top: 45px;
+    z-index: 0;
+    pointer-events: none;
+}}
+
+.bg-left {{
+    left: 255px;
+    width: 220px;
+}}
+
+.bg-right {{
+    right: 95px;
+    width: 180px;
+}}
+</style>
+
+<img class="bg-img bg-left" src="data:image/png;base64,{img2}">
+<img class="bg-img bg-right" src="data:image/jpeg;base64,{img1}">
+""", unsafe_allow_html=True)
+
 # ---------------- 3. СТИЛИ (ТВОИ ОРИГИНАЛЬНЫЕ БЕЗ ИЗМЕНЕНИЙ) ----------------
 st.markdown(f"""
 <style>
-.block-container {{ padding-top: 1rem !important; padding-bottom: 0rem !important; }}
+.block-container {{ padding-top: 1rem !important; padding-bottom: 0rem !important; position: relative; z-index: 1;}}
 [data-testid="stHeader"] {{ background: rgba(0,0,0,0); }} /* Прозрачный хедер */
 [data-testid="stSidebarNav"] {{display: none;}}
 section[data-testid="stSidebar"] {{ width: 150px !important; min-width: 150px !important; }}
@@ -255,16 +293,19 @@ div[role="radiogroup"] label {{
     border: none !important;
 }}
 
-/* Скрываем стандартный кружок радио-кнопки */
+div[role="radiogroup"] [data-baseweb="radio"] > div:first-child,
 div[role="radiogroup"] [data-testid="stWidgetSelectionVisualizer"] {{
     display: none !important;
     opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
 }}
+
 
 /* ПРОБИВАЕМ ШРИФТ: Нацеливаемся прямо на параграф с текстом внутри лейбла */
 div[role="radiogroup"] label p {{
     font-family: 'Material Icons' !important;
-    font-size: {f_size} !important;
+    font-size: 32px !important;
     color: #334455 !important;
     display: flex !important;
     align-items: center !important;
@@ -317,32 +358,78 @@ div[data-testid="stSlider"] [data-baseweb="slider"] div[style*="left: 0%"] {{
     background-color: #5B8DBE !important;
 }}
 
- /* ---------------- КНОПКИ (АКЦЕНТЫ) ---------------- */
-div.stButton > button[id^="st-key-btn_info_"],
-div.stButton > button[id^="st-key-btn_check_"],
-div.stButton > button[id^="st-key-btn_done_"] {{
+/* ---------------- КНОПКИ (АКЦЕНТЫ) — ИСПРАВЛЕНО ---------------- */
+/* Делаем кнопки под карточками СТРОГО квадратными 50x50 */
+div.stButton > button[id*="btn_info_"],
+div.stButton > button[id*="st-key-btn_check_"],
+div.stButton > button[id*="st-key-btn_done_"] {{
     background-color: #F0F4F8 !important;
-    color: #111111 !important; /* Текст кнопок стал черным */
+    color: #111111 !important;
     border: 1px solid #D0DCE8 !important;
     font-weight: 700 !important;
+    
+    /* Жесткий размер */
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    padding: 0 !important;
+    aspect-ratio: 1 / 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }}
 
-div.stButton > button[id^="st-key-btn_"]:hover {{
-    background-color: #5B8DBE !important;
-    color: #ffffff !important;
-    border-color: #5B8DBE !important;
+/* Прижимаем календарь (инфо) к левому краю колонки */
+div[data-testid="column"]:has(button[id*="btn_info_"]) {{
+    display: flex !important;
+    justify-content: flex-start !important;
 }}
 
-/* Галочка (выполнено) — теперь сочный зеленый */
-div.stButton > button[id^="st-key-btn_done_"]:disabled {{
-    background: #28C76F !important; /* Яркий зеленый */
+/* Прижимаем галочку (чек) к правому краю колонки */
+div[data-testid="column"]:has(button[id*="btn_check_"]), 
+div[data-testid="column"]:has(button[id*="btn_done_"]) {{
+    display: flex !important;
+    justify-content: flex-end !important;
+}}
+
+/* 1. Находим контейнер всей колонки, где лежит кнопка, и заставляем его центрировать содержимое */
+[data-testid="stVerticalBlock"]:has(button[id*="add_habit_btn"]) {{
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+}}
+
+/* 2. Находим непосредственный контейнер кнопки */
+div.stButton:has(button[id*="add_habit_btn"]) {{
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+}}
+
+/* 3. Стили самой кнопки (убираем лишние отступы) */
+button[id*="add_habit_btn"] {{
+    width: 300px !important;
+    height: 50px !important;
+    margin: 0 auto !important; /* Центрирование маргинами */
+    background-color: #6B7B94 !important;
+    color: white !important;
+    display: block !important;
+}}
+
+/* Галочка (выполнено) — зеленый фон, когда кнопка отключена */
+button[id*="btn_done_"]:disabled {{
+    background: #28C76F !important;
     color: #ffffff !important;
     border: none !important;
-    box-shadow: 0 4px 12px rgba(40, 199, 111, 0.3) !important;
+    opacity: 1 !important; /* Убираем стандартную прозрачность disabled */
 }}
 
 </style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+
 """, unsafe_allow_html=True)
 
 # ---------------- 4. НАДЕЖНЫЙ САЙДБАР (БЕЗ ИЗМЕНЕНИЙ) ----------------
@@ -438,23 +525,32 @@ def habit_dialog(h_id, h_name, history):
     st.session_state.setdefault(key_year, today.year)
     month, year = st.session_state[key_month], st.session_state[key_year]
 
-    st.markdown(f"<h3 style='text-align:center; margin-bottom:10px;'>КАЛЕНДАРЬ</h3>",
-                unsafe_allow_html=True)
+    st.markdown(
+        "<h3 style='text-align:center; margin-bottom:10px; font-family: Tahoma; font-weight:800;'>КАЛЕНДАРЬ</h3>",
+        unsafe_allow_html=True
+    )
 
     col1, col2, col3 = st.columns([1, 2, 1])
+
     with col1:
         if st.button("←", key=f"prev_{h_id}"):
             st.session_state[key_month] = 12 if month == 1 else month - 1
             st.session_state[key_year] = year - 1 if month == 1 else year
             st.rerun()
+
     with col2:
-        st.markdown(f"<div style='text-align:center; font-weight:600'>{calendar.month_name[month]} {year}</div>",
-                    unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='text-align:center; font-weight:600'>{calendar.month_name[month]} {year}</div>",
+            unsafe_allow_html=True
+        )
+
     with col3:
-        if st.button("→", key=f"next_{h_id}"):
-            st.session_state[key_month] = 1 if month == 12 else month + 1
-            st.session_state[key_year] = year + 1 if month == 12 else year
-            st.rerun()
+        c1, c2 = st.columns([1, 1])
+        with c2:
+            if st.button("→", key=f"next_{h_id}"):
+                st.session_state[key_month] = 1 if month == 12 else month + 1
+                st.session_state[key_year] = year + 1 if month == 12 else year
+                st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -468,7 +564,7 @@ def habit_dialog(h_id, h_name, history):
 
     cols = st.columns(7)
     for i_d, d in enumerate(week_days):
-        cols[i_d].markdown(f"<div style='text-align:center; font-weight:600; color:#667'>{d}</div>",
+        cols[i_d].markdown(f"<div style='text-align:center; font-family: Tahoma; font-weight:600; margin-bottom: 10px; color:#667'>{d}</div>",
                            unsafe_allow_html=True)
 
     for week in month_days:
@@ -494,16 +590,44 @@ def habit_dialog(h_id, h_name, history):
 
     streak, max_streak = calculate_streaks(history)
     today_done = today.isoformat() in history
-    flame = lambda \
-        active: f'<svg width="24" height="24" viewBox="0 0 24 24"><path fill="{"#2735F5" if active else "#BCBCC2"}" d="M13 2C13 2 8 8 8 12a4 4 0 0 0 8 0c0-3-3-7-3-10z"/><path fill="{"#FFA726" if active else "#BCBCC2"}" d="M12 14a2 2 0 0 0 2-2c0-1.5-1.5-3-2-4-0.5 1-2 2.5-2 4a2 2 0 0 0 2 2z"/></svg>'
 
-    c1, c2 = st.columns(2)
-    c1.markdown(
-        f'<div style="display:flex;align-items:center;gap:8px;">{flame(today_done)} <b>{streak}</b> Текущ.</div>',
-        unsafe_allow_html=True)
-    c2.markdown(
-        f'<div style="display:flex;align-items:center;gap:8px;">{flame(True)} <b>{max_streak}</b> Макс.</div>',
-        unsafe_allow_html=True)
+    flame = lambda active: f"""
+    <span style="
+        font-family: 'Material Icons';
+        font-size:24px;
+        color:{'#007AFF' if active else '#BCBCC2'};
+        vertical-align:middle;
+    ">
+    local_fire_department
+    </span>
+    """
+
+    st.markdown(f"""
+    <div style="display:flex; justify-content:center; gap:60px; margin-top:20px; margin-bottom:0px;">
+
+    <div style="display:flex; flex-direction:column; align-items:center;">
+    <div style="display:flex; align-items:center; gap:6px;">
+    {flame(today_done)} 
+    <span style="font-size:22px; font-weight:800;">{streak}</span>
+    </div>
+    <div style="margin-top:1px; font-size:13px; color:#667; line-height:1;">
+    текущая серия
+    </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; align-items:center;">
+    <div style="display:flex; align-items:center; gap:6px;">
+    {flame(True)} 
+    <span style="font-size:22px; font-weight:800;">{max_streak}</span>
+    </div>
+    <div style="margin-top:1px; font-size:13px; color:#667; line-height:1;">
+    максимальная серия
+    </div>
+    </div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("<br>", unsafe_allow_html=True)
 
     st.write("---")
@@ -523,15 +647,22 @@ if st.session_state.open_habit_dialog and st.session_state.dialog_just_opened:
     habit_dialog(h_id, h_name, hist)
     st.session_state.dialog_just_opened = False
 
+
 # ---------------- 7. ГЛАВНЫЙ ЭКРАН ----------------
+# Заголовок и кнопка отдельно от карточек для четкого центрирования
 st.markdown('<div class="page-header">ГЛАВНАЯ</div>', unsafe_allow_html=True)
 
-col_l, col_c, col_r = st.columns([1, 2, 1])
-with col_c:
-    if st.button("Добавить привычку", use_container_width=True, type="primary"):
+
+# Обертка для кнопки
+col1, col2, col3 = st.columns([1, 2, 1])
+
+
+with col2:
+    if st.button("Добавить привычку", type="primary", key="add_habit_btn", use_container_width=True):
         add_habit_dialog()
 
-st.markdown('<div style="margin-bottom: 70px;"></div>', unsafe_allow_html=True)
+
+st.markdown('<div style="margin-bottom: 40px;"></div>', unsafe_allow_html=True)
 
 # Загрузка данных
 conn = get_db_connection()
@@ -565,9 +696,11 @@ if habits:
                 </div>
             """, unsafe_allow_html=True)
 
-            b_col_space1, b_col1, b_col2, b_col_space2 = st.columns([1, 2, 1, 1])
+            # Замените старые b_col_space1, b_col1... на это:
+            b_col_space1, b_col1, b_col2, b_col_space2 = st.columns(4)
 
             with b_col1:
+                # Кнопка календаря
                 if st.button("", icon=":material/calendar_month:", key=f"btn_info_{h_id}"):
                     conn = get_db_connection()
                     c = conn.cursor()
@@ -580,13 +713,14 @@ if habits:
                     st.rerun()
 
             with b_col2:
-                # ИСПРАВЛЕНИЕ: Выпилен дабл-клик. Просто обычное добавление записи.
+                # Кнопка выполнения
                 if not t_status:
                     if st.button("", icon=":material/check_circle:", key=f"btn_check_{h_id}"):
                         conn = get_db_connection()
                         c = conn.cursor()
-                        c.execute("INSERT OR REPLACE INTO habit_logs (habit_id, log_date, status) VALUES (?, ?, 'done')",
-                                  (h_id, date.today().isoformat()))
+                        c.execute(
+                            "INSERT OR REPLACE INTO habit_logs (habit_id, log_date, status) VALUES (?, ?, 'done')",
+                            (h_id, date.today().isoformat()))
                         conn.commit()
                         conn.close()
                         st.rerun()
