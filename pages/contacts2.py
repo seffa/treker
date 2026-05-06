@@ -10,18 +10,34 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 
-def get_db_connection():
-    return sqlite3.connect('treker_bd.db', check_same_thread=False)
+
+def grant_achievement(user_id, ach_name):
+    try:
+        conn = sqlite3.connect('treker_bd.db', check_same_thread=False)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS user_achievements (
+                user_id INTEGER, 
+                achievement_name TEXT, 
+                PRIMARY KEY (user_id, achievement_name)
+            )
+        """)
+        conn.execute("INSERT OR IGNORE INTO user_achievements (user_id, achievement_name) VALUES (?, ?)", (user_id, ach_name))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        st.error(f"Ошибка БД: {e}")
+        return False
+
 
 
 def img_to_base64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-
 img3 = img_to_base64("styles/call.png")
 
-# ТВОИ СТИЛИ (остались без изменений, убрал только тег <script> из markdown)
+# ТВОИ СТИЛИ + ДОБАВЛЕНО СОКРЫТИЕ ЧЕКБОКСА
 st.markdown("""
 <style>
     .block-container {
@@ -141,15 +157,31 @@ st.markdown("""
     .dev-role { font-family: 'Tahoma', sans-serif; font-size: 14px; color: #7F8C8D; }
     .dev-email { font-family: 'Tahoma', sans-serif; font-size: 15px; color: #4A90E2; text-decoration: none; }
 
-    /* --- КНОПКА ПОДДЕРЖКИ --- */
-    .support-container {
-        display: flex;
-        justify-content: center;
-        margin-top: 50px;
-        margin-bottom: 20px;
+
+    .img3 {
+        position: absolute;
+        bottom: 400px; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        z-index: 1;
+        pointer-events: none;
     }
 
-    .support-btn {
+    .img3 img {
+        width: 185px !important;
+    }
+    
+    /* Находим контейнер кнопки и заставляем его центровать содержимое */
+    div.stButton {
+        display: flex !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        width: fit-content !important;
+        margin-top: 100px !important;
+    }
+
+    /* Сама кнопка */
+    .stButton > button {
         background-color: #8fa4bc !important; /* Цвет как у сайдбара */
         color: white !important;
         padding: 12px 30px !important;
@@ -164,23 +196,10 @@ st.markdown("""
         display: inline-block !important;
     }
 
-    .support-btn:hover {
+    .stButton > button:hover {
         background-color: #70869d !important; /* Цвет ховера как у сайдбара */
         transform: scale(1.05) !important;
         box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
-    }
-
-    .img3 {
-        position: absolute;
-        bottom: 380px; /* Оставил примерно твою высоту над нижним рядом */
-        left: 50%; /* Двигаем начало картинки на центр экрана */
-        transform: translateX(-50%); /* Сдвигаем саму картинку влево на половину её ширины */
-        z-index: 1;
-        pointer-events: none;
-    }
-
-    .img3 img {
-        width: 185px !important;
     }
 
 </style>
@@ -198,7 +217,6 @@ with st.sidebar:
     st.page_link("pages/contacts2.py", label="Chat", icon=":material/chat:")
 
 
-# Функция для вывода карточки (Убрали onclick, добавили data-email)
 def draw_contact(name, role, icon, email):
     st.markdown(f"""
         <div class="dev-card">
@@ -231,67 +249,55 @@ with col4:
 with col5:
     draw_contact("Григорян Нарек", "Дизайнер", "face_6", "narek02112020@gmail.com")
 
-st.markdown("""
-    <div class="support-container">
-        <a href="https://messenger.online.sberbank.ru/sl/8JxgkasHxxoOHS3Rh" target="_blank" class="support-btn">
-            Поддержать создателей
-        </a>
-    </div>
-""", unsafe_allow_html=True)
 
-# --- НЕВИДИМЫЙ СКРИПТ ДЛЯ РАБОТЫ БУФЕРА ОБМЕНА ---
-js_code = """
-<script>
-    const parentDoc = window.parent.document;
+# 1. Твоя кнопка чистым HTML/CSS. Без тега скрипта внутри (перенесли его в общий JS)
+if st.session_state.user:
+    # Создаем 3 колонки, средняя будет для кнопки
+    # Соотношение 1:2:1 или 1:1:1 поможет выровнять точно по центру
+    _, center_col, _ = st.columns([1, 2, 1])
 
-    function attachCopyEvents() {
-        // Находим все элементы с классом copyable-email, на которых еще нет обработчика
-        const emails = parentDoc.querySelectorAll('.copyable-email:not(.js-bound)');
+    with center_col:
+        if st.button("Поддержать создателей", use_container_width=True):
+            u_id = st.session_state.user.get('id')
+            if u_id:
+                grant_achievement(u_id, "Смерть в нищете")
 
-        emails.forEach(el => {
-            el.classList.add('js-bound'); // Помечаем, что обработчик уже висит
+            js_click = """
+            <script>
+                window.parent.open("https://messenger.online.sberbank.ru/sl/8JxgkasHxxoOHS3Rh", "_blank");
+            </script>
+            """
+            components.html(js_click, height=0, width=0)
+else:
+    st.info("Войдите в систему для получения достижений")
 
-            el.addEventListener('click', function() {
-                const emailText = this.getAttribute('data-email');
-                const originalText = this.innerText;
-
-                // Функция визуального отклика
-                const showSuccess = () => {
-                    this.innerText = 'Скопировано!';
-                    this.style.color = '#2ECC71';
-                    setTimeout(() => {
-                        this.innerText = originalText;
-                        this.style.color = '#4A90E2';
-                    }, 1500);
-                };
-
-                // Пробуем скопировать через современный API
-                if (window.parent.navigator && window.parent.navigator.clipboard) {
-                    window.parent.navigator.clipboard.writeText(emailText).then(showSuccess);
-                } else {
-                    // Запасной план для старых браузеров
-                    const textArea = parentDoc.createElement("textarea");
-                    textArea.value = emailText;
-                    parentDoc.body.appendChild(textArea);
-                    textArea.select();
-                    parentDoc.execCommand('copy');
-                    parentDoc.body.removeChild(textArea);
-                    showSuccess();
-                }
-            });
-        });
-    }
-
-    // Запускаем интервал, потому что Streamlit постоянно перерисовывает DOM
-    setInterval(attachCopyEvents, 1000);
-</script>
-"""
-
+# Картинка с зайцем/телефоном снизу
 st.markdown(f"""
     <div class="img3">
         <img src="data:image/png;base64,{img3}">
     </div>
 """, unsafe_allow_html=True)
 
-# Вставляем скрипт так, чтобы Streamlit его не вырезал (высота 0 делает его невидимым)
+# Скрипт только для копирования почты
+js_code = """
+<script>
+    const parentDoc = window.parent.document;
+    function attachClipboardEvents() {
+        const emails = parentDoc.querySelectorAll('.copyable-email:not(.js-bound)');
+        emails.forEach(el => {
+            el.classList.add('js-bound'); 
+            el.addEventListener('click', function() {
+                const emailText = this.getAttribute('data-email');
+                if (window.parent.navigator.clipboard) {
+                    window.parent.navigator.clipboard.writeText(emailText).then(() => {
+                        this.innerText = 'Скопировано!';
+                        setTimeout(() => { this.innerText = emailText; }, 1500);
+                    });
+                }
+            });
+        });
+    }
+    setInterval(attachClipboardEvents, 500);
+</script>
+"""
 components.html(js_code, height=0, width=0)
