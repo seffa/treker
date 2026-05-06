@@ -8,10 +8,19 @@ st.set_page_config(page_title="Настройки", layout="wide", initial_sideb
 if "user" not in st.session_state:
     st.session_state.user = None
 
+def grant_achievement(user_id, ach_name):
+    conn = sqlite3.connect('treker_bd.db', check_same_thread=False)
+    conn.execute("CREATE TABLE IF NOT EXISTS user_achievements (user_id INTEGER, achievement_name TEXT, PRIMARY KEY (user_id, achievement_name))")
+    conn.execute("INSERT OR IGNORE INTO user_achievements (user_id, achievement_name) VALUES (?, ?)", (user_id, ach_name))
+    conn.commit()
+    conn.close()
 
 def get_db_connection():
     return sqlite3.connect('treker_bd.db', check_same_thread=False)
 
+def on_export_click():
+    if st.session_state.user:
+        grant_achievement(st.session_state.user['id'], "Самохвалов")
 
 # Инициализация таблицы настроек
 def init_settings_db():
@@ -58,8 +67,12 @@ if st.session_state.user:
 
     font_css = f"""
             <style>
-                .block-container {{ padding-top: 1rem !important; }}
-
+                .block-container {{
+                    padding-top: 2srem !important;
+                    padding-bottom: 0rem !important;
+                    position: relative;
+                }}
+            
                 .page-title {{ 
                     text-align: center; margin-bottom: 80px !important; 
                     font-size: {h_size} !important; font-weight: 700; color: #334455; 
@@ -139,7 +152,11 @@ if st.session_state.user:
 st.markdown("""
 <style>
     /* --- НАВИГАЦИЯ (САЙДБАР) --- */
-    .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 0rem !important;
+        position: relative;
+    }
     [data-testid="stHeader"] { background: rgba(0,0,0,0); }
     [data-testid="stSidebarNav"] {display: none;}
     section[data-testid="stSidebar"] { width: 150px !important; min-width: 150px !important; }
@@ -193,6 +210,9 @@ st.markdown("""
         box-shadow: 0 20px 25px -5px rgba(91, 141, 190, 0.15), 0 10px 10px -5px rgba(91, 141, 190, 0.1);
     }
     
+    .inner-setting-card { border: 1px solid #4A90E2; box-shadow: 0 8px 20px rgba(74, 144, 226, 0.38); }
+
+    
     .section-header {
         display: flex;
         align-items: center;
@@ -213,15 +233,43 @@ st.markdown("""
         font-weight: 700;
         letter-spacing: -0.5px;
     }
-
-    .report-card { background-color: #f0f4f8 !important; border: 2px solid #5B8DBE !important; }
-    .report-card { border: 2px solid #4A90E2; box-shadow: 0 8px 20px rgba(91, 141, 190, 0.38); }
-
-    .danger-card { background: linear-gradient(135deg, #fff5f5 0%, #f0f2f6 100%) !important; border: 2px solid #ff4b4b !important; }
-    .danger-card { border: 2px solid #4A90E2; box-shadow: 0 8px 20px rgba(255, 75, 75, 0.38); }
     
-    .danger-card { background: linear-gradient(135deg, #fff5f5 0%, #f0f2f6 100%) !important; border: 2px solid #ff4b4b !important; }
-    .danger-card { border: 2px solid #4A90E2; box-shadow: 0 8px 20px rgba(255, 75, 75, 0.38); }
+    
+    .report-card {
+        background: #ffffff;
+        border: 1px solid rgba(224, 230, 237, 0.5);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 25px;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03), 0 10px 15px -3px rgba(91, 141, 190, 0.05);
+    }
+
+    .report-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(91, 141, 190, 0.4);
+        box-shadow: 0 20px 25px -5px rgba(91, 141, 190, 0.15), 0 10px 10px -5px rgba(91, 141, 190, 0.1);
+    }
+    
+    .report-card { border: 1px solid #4A90E2; box-shadow: 0 8px 20px rgba(74, 144, 226, 0.38); }
+
+    .danger-card {
+        background: #ffffff;
+        border: 1px solid rgba(224, 230, 237, 0.5);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 25px;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03), 0 10px 15px -3px rgba(91, 141, 190, 0.05);
+    }
+
+    .danger-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(91, 141, 190, 0.4);
+        box-shadow: 0 20px 25px -5px rgba(91, 141, 190, 0.15), 0 10px 10px -5px rgba(91, 141, 190, 0.1);
+    }
+
+    .danger-card { border: 1px solid #4A90E2; box-shadow: 0 8px 20px rgba(74, 144, 226, 0.38); }
 
     .setting-label {
         font-weight: 600 !important;
@@ -335,15 +383,21 @@ with col2:
     """, unsafe_allow_html=True)
     st.write("Сохраните историю своих привычек в формате HTML.")
     html_data = generate_html_report(user_id, st.session_state.user.get('nick', 'User'))
-    st.download_button(label="Экспорт в HTML", data=html_data, file_name="Report.html", mime="text/html",
-                       use_container_width=True)
+    st.download_button(
+        label="Экспорт в HTML",
+        data=html_data,
+        file_name="Report.html",
+        mime="text/html",
+        use_container_width=True,
+        on_click=on_export_click  # <--- Вот эта строчка выдаст ачивку
+    )
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("""
         <div class="inner-setting-card danger-card">
             <div class="section-header">
-                <i class="material-icons" style="color: #ff4b4b;">warning</i>
-                <span style="color: #ff4b4b;">Опасная зона</span>
+                <i class="material-icons" style="color: #5B8DBE;">warning</i>
+                <span>Опасная зона</span>
             </div>
     """, unsafe_allow_html=True)
     st.write("Сброс полностью удалит все ваши привычки и историю их выполнения.")
