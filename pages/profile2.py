@@ -309,7 +309,7 @@ if st.session_state.user:
     achievements = [
         {"icon": "luggage", "name": "Бипки", "desc": "Что такое бипки?<br>Зарегистрироваться", "req": 0,
          "cur": h_count},
-        {"icon": "wind_power", "name": "Воздух", "desc": "Что-то подуло<br>Вы создали первую привычку", "req": 1,
+        {"icon": "wind_power", "name": "Воздух", "desc": "Что-то подуло<br>Вы выполнили первую привычку", "req": 1,
          "cur": l_count},
         {"icon": "lyrics", "name": "Оксимирон", "desc": "Ты выполнила задание на 5+<br>Вы создали пять привычек",
          "req": 5, "cur": l_count},
