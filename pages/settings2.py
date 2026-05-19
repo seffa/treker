@@ -278,6 +278,66 @@ st.markdown("""
         display: block;
         font-size: 20px !important; 
     }
+
+@media (max-width: 768px) {{
+
+
+    section[data-testid="stSidebar"] {{
+        width: 125px !important;
+        min-width: 125px !important;
+        max-width: 125px !important;
+        background-color: #f8f9fa !important; /* Можно задать легкий фон для мобильной шторки */
+    }}
+
+    /* Чуть-чуть уменьшаем плитки, чтобы они идеально вписывались в узкий экран смартфона */
+    .nav-tile, [data-testid="stSidebar"] .stPageLink a {{
+        width: 75px !important;
+        height: 75px !important;
+        margin: 12px auto !important;
+        border-radius: 18px !important;
+    }}
+
+    /* Пропорционально уменьшаем иконки внутри плиток */
+    [data-testid="stSidebar"] .stPageLink a svg,
+    [data-testid="stSidebar"] .stPageLink a i,
+    [data-testid="stSidebar"] .stPageLink a span[translate="no"] {{
+        font-size: 30px !important; 
+        width: 30px !important;
+        height: 30px !important;
+        line-height: 30px !important;
+    }}
+    
+    /* Сдвигаем контент страницы, чтобы при открытии сайдбара на мобилке ничего не ломалось */
+    [data-testid="stMain"] {{
+        margin-left: 0px !important;
+    }}
+    /* 1. Фоновые картинки (заяц, трубка) на мобилках будут перекрывать контент. Лучше их скрыть */
+    .bg-img, .img3 {{
+        display: none !important;
+    }}
+
+    /* 3. Кнопка "Добавить привычку" или "Поддержать" (были по 300px).
+       На мобилке пусть растягиваются на всю ширину экрана для удобного тапа пальцем */
+    button[id*="add_habit_btn"], .stButton > button {{
+        width: 100% !important;
+        max-width: 100% !important;
+    }}
+
+    /* 4. Заголовки страниц (были огромными — 32px с отступами по 100px). Сжимаем их */
+    .page-header {{
+        font-size: 24px !important;
+        margin-top: 20px !important;
+        margin-bottom: 30px !important;
+    }}
+
+    /* 5. Карточки привычек на главной. 
+       Вместо фиксированных 210px сделаем их резиновыми */
+    .habit-card {{
+        width: 100% !important;
+        max-width: 260px; /* Чтобы не были слишком гигантскими */
+        margin: 0 auto 15px auto !important;
+    }}
+}}
         
 </style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
