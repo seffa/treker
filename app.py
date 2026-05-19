@@ -43,7 +43,7 @@ def init_db():
     try:
         c.execute("ALTER TABLE habits ADD COLUMN icon_key TEXT")
     except:
-        pass  # Если колонка уже есть, просто идем дальше
+        pass
 
     try:
         c.execute("ALTER TABLE habits ADD COLUMN duration INTEGER DEFAULT 30")
@@ -76,7 +76,6 @@ def load_settings(uid):
 
 
 def img_to_base64(path):
-    import base64
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
@@ -87,19 +86,12 @@ if st.session_state.user:
     f_size = "14px" if s_font == "Мелкий" else "25px" if s_font == "Крупный" else "17px"
     fdw = 0 if s_week == 'Понедельник' else 6
 else:
-    fdw, f_size =0, "17px"
-
-
-def img_to_base64(path):
-    import base64
-    with open(path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
-
-
+    fdw, f_size = 0, "17px"
 
 img1 = img_to_base64("styles/gj.png")
 img2 = img_to_base64("styles/thumb.jpg")
 
+# ---------------- 2. ФОНОВЫЕ ИЗОБРАЖЕНИЯ (СТАТИКА) ----------------
 st.markdown(f"""
 <style>
 .bg-img {{
@@ -124,11 +116,10 @@ st.markdown(f"""
 <img class="bg-img bg-right" src="data:image/jpeg;base64,{img1}">
 """, unsafe_allow_html=True)
 
-# ---------------- 3. СТИЛИ (ТВОИ ОРИГИНАЛЬНЫЕ БЕЗ ИЗМЕНЕНИЙ) ----------------
+# ---------------- 3. СТИЛИ И ИНТЕГРАЦИЯ АДАПТИВА ----------------
 st.markdown(f"""
 <style>
 .block-container {{ padding-top: 1rem !important; padding-bottom: 0rem !important; position: relative; z-index: 1;}}
-[data-testid="stHeader"] {{ background: rgba(0,0,0,0); }} /* Прозрачный хедер */
 [data-testid="stSidebarNav"] {{display: none;}}
 section[data-testid="stSidebar"] {{ width: 150px !important; min-width: 150px !important; }}
 
@@ -141,22 +132,19 @@ section[data-testid="stSidebar"] {{ width: 150px !important; min-width: 150px !i
     height: 85px !important;
     margin: 15px auto !important;
     border-radius: 20px !important;
-    color: white !important; /* Цвет текста/иконки */
+    color: white !important; 
     background-color: #8fa4bc !important;
     transition: all 0.3s ease !important;
     text-decoration: none !important;
-    /* Убираем стандартный зазор между иконкой и скрытым текстом */
     gap: 0 !important;
 }}
 
-/* ИСПРАВЛЕНИЕ ЦЕНТРИРОВАНИЯ: Сбрасываем внутренние контейнеры Streamlit */
 [data-testid="stSidebar"] .stPageLink a div {{
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
 }}
 
-/* Полностью убираем влияние текста */
 [data-testid="stSidebar"] .stPageLink a p {{
     display: none !important;
     margin: 0 !important;
@@ -165,12 +153,10 @@ section[data-testid="stSidebar"] {{ width: 150px !important; min-width: 150px !i
     height: 0 !important;
 }}
 
-/* Ссылка в активном состоянии */
 [data-testid="stSidebar"] .stPageLink a[aria-current="page"] {{
     background-color: #FF1493 !important;
 }}
 
-/* СТИЛИЗАЦИЯ ИКОНОК: Убираем лишние отступы */
 [data-testid="stSidebar"] .stPageLink a svg,
 [data-testid="stSidebar"] .stPageLink a i,
 [data-testid="stSidebar"] .stPageLink a span[translate="no"] {{
@@ -178,20 +164,17 @@ section[data-testid="stSidebar"] {{ width: 150px !important; min-width: 150px !i
     width: 35px !important;
     height: 35px !important;
     line-height: 35px !important;
-    margin: 0 !important; /* Обнуляем margin, который Streamlit добавляет справа */
+    margin: 0 !important; 
     padding: 0 !important;
     display: block !important;
-    fill: white !important; /* Для SVG */
-    color: white !important; /* Для шрифтовых иконок */
+    fill: white !important; 
+    color: white !important; 
 }}
 
-/* Ховер эффект */
 [data-testid="stSidebar"] .stPageLink a:hover {{
     background-color: #70869d !important;
     transform: scale(1.05);
 }}
-
-header, footer, #MainMenu {{ visibility: hidden; display: none; }}
 
 .stButton > button {{
     background-color: #6B7B94 !important;
@@ -223,12 +206,9 @@ header, footer, #MainMenu {{ visibility: hidden; display: none; }}
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* Усилили рамку */
     border: 1.5px solid #E0E6ED;
     position: relative;
     margin: 0 auto 15px auto;
-
-    /* Более выраженная тень для объема */
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
     overflow: hidden;
@@ -244,58 +224,53 @@ header, footer, #MainMenu {{ visibility: hidden; display: none; }}
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    /* ГЛУБОКИЙ КОНТРАСТНЫЙ ГРАДИЕНТ: от синего к насыщенному голубому */
     background: linear-gradient(135deg, #4A90E2 0%, #5B8DBE 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 15px;
-    /* Тень под иконкой, чтобы она "вдавливалась" или "выступала" */
     box-shadow: 0 8px 20px rgba(74, 144, 226, 0.35);
 }}
 
-/* Сама иконка теперь максимально видна */
 .habit-avatar i, .habit-avatar span {{
     font-size: 32px !important;
-    color: #ffffff !important; /* Яркий белый на темном фоне */
+    color: #ffffff !important; 
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }}
 
 .habit-name {{
-    color: #111111; /* Чистый черный или очень темный для четкости */
+    color: #111111; 
     font-size: {f_size};
-    font-weight: 800; /* Максимально жирный */
+    font-weight: 800; 
     text-align: center;
     padding: 0 15px;
     line-height: 1.1;
 }}
 
 .habit-meta {{
-    color: #556677; /* Затемнили текст подписи */
+    color: #556677; 
     font-size: {f_size};
     margin-top: 8px;
     font-weight: 600;
 }}
 
-/* Прогресс-бар: сделали ярче и заметнее */
 .progress-bar {{
     position: absolute;
     bottom: 18px;
     left: 25px;
     right: 25px;
-    height: 10px; /* Сделали чуть толще */
+    height: 10px; 
     background: #EDF1F7;
     border-radius: 20px;
 }}
 
 .progress-fill {{
     height: 100%;
-    /* Насыщенный синий для заполнения */
     background: linear-gradient(90deg, #4A90E2, #007AFF);
     border-radius: 20px;
 }}
 
-/* Выбор иконок (твой стиль) */
+/* Выбор иконок */
 div[role="radiogroup"] {{
     display: flex;
     flex-wrap: wrap;
@@ -305,7 +280,7 @@ div[role="radiogroup"] {{
 }}
 
 div[role="radiogroup"] label {{
-    width: 80px !important;  /* Сделаем чуть шире, чтобы текст не вылезал, пока грузится шрифт */
+    width: 80px !important;  
     height: 60px !important;
     background: #EAF4FF;
     border-radius: 16px;
@@ -325,8 +300,6 @@ div[role="radiogroup"] [data-testid="stWidgetSelectionVisualizer"] {{
     height: 0 !important;
 }}
 
-
-/* ПРОБИВАЕМ ШРИФТ: Нацеливаемся прямо на параграф с текстом внутри лейбла */
 div[role="radiogroup"] label p {{
     font-family: 'Material Icons' !important;
     font-size: 32px !important;
@@ -340,22 +313,20 @@ div[role="radiogroup"] label p {{
     width: 100% !important;
 }}
 
-/* Цвет иконки при наведении */
 div[role="radiogroup"] label:hover {{
     background: #D6E9FF !important;
 }}
 
-/* Цвет иконки и фона при выборе */
 div[role="radiogroup"] input:checked + div {{
     background: #4DA6FF !important;
     border-radius: 16px !important;
 }}
 
 div[role="radiogroup"] input:checked + div p {{
-    color: white !important; /* Иконка становится белой на синем фоне */
+    color: white !important; 
 }}
 
-/* 4. Принудительно красим сам ползунок и активную дорожку в синий */
+/* Ползунок слайдера */
 div[data-testid="stSlider"] [role="slider"] {{
     background-color: #5B8DBE !important;
     border-color: #5B8DBE !important;
@@ -366,7 +337,6 @@ div[data-testid="stSlider"] [data-baseweb="slider"] > div > div > div {{
     background-color: #5B8DBE !important;
 }}
 
-/* Нацеливаемся на все внутренние элементы текста и ползунка */
 div[data-testid="stSlider"] * {{
     color: #5B8DBE !important;
     --primary-color: #5B8DBE !important;
@@ -377,13 +347,11 @@ div[data-testid="stSlider"] [data-baseweb="slider"] > div {{
     background-color: transparent !important;
 }}
 
-/* Принудительно красим активную часть дорожки (до ползунка) в синий */
 div[data-testid="stSlider"] [data-baseweb="slider"] div[style*="left: 0%"] {{
     background-color: #5B8DBE !important;
 }}
 
-/* ---------------- КНОПКИ (АКЦЕНТЫ) — ИСПРАВЛЕНО ---------------- */
-/* Делаем кнопки под карточками СТРОГО квадратными 50x50 */
+/* Кнопки под карточками */
 div.stButton > button[id*="btn_info_"],
 div.stButton > button[id*="st-key-btn_check_"],
 div.stButton > button[id*="st-key-btn_done_"] {{
@@ -391,8 +359,6 @@ div.stButton > button[id*="st-key-btn_done_"] {{
     color: #111111 !important;
     border: 1px solid #D0DCE8 !important;
     font-weight: 700 !important;
-
-    /* Жесткий размер */
     width: 50px !important;
     height: 50px !important;
     min-width: 50px !important;
@@ -404,20 +370,17 @@ div.stButton > button[id*="st-key-btn_done_"] {{
     justify-content: center !important;
 }}
 
-/* Прижимаем календарь (инфо) к левому краю колонки */
 div[data-testid="column"]:has(button[id*="btn_info_"]) {{
     display: flex !important;
     justify-content: flex-start !important;
 }}
 
-/* Прижимаем галочку (чек) к правому краю колонки */
 div[data-testid="column"]:has(button[id*="btn_check_"]), 
 div[data-testid="column"]:has(button[id*="btn_done_"]) {{
     display: flex !important;
     justify-content: flex-end !important;
 }}
 
-/* 1. Находим контейнер всей колонки, где лежит кнопка, и заставляем его центрировать содержимое */
 [data-testid="stVerticalBlock"]:has(button[id*="add_habit_btn"]) {{
     display: flex !important;
     flex-direction: column !important;
@@ -425,42 +388,57 @@ div[data-testid="column"]:has(button[id*="btn_done_"]) {{
     width: 100% !important;
 }}
 
-/* 2. Находим непосредственный контейнер кнопки */
 div.stButton:has(button[id*="add_habit_btn"]) {{
     display: flex !important;
     justify-content: center !important;
     width: 100% !important;
 }}
 
-/* 3. Стили самой кнопки (убираем лишние отступы) */
 button[id*="add_habit_btn"] {{
     width: 300px !important;
     height: 50px !important;
-    margin: 0 auto !important; /* Центрирование маргинами */
+    margin: 0 auto !important;
     background-color: #6B7B94 !important;
     color: white !important;
     display: block !important;
 }}
 
-/* Галочка (выполнено) — зеленый фон, когда кнопка отключена */
 button[id*="btn_done_"]:disabled {{
     background: #28C76F !important;
     color: #ffffff !important;
     border: none !important;
-    opacity: 1 !important; /* Убираем стандартную прозрачность disabled */
+    opacity: 1 !important; 
 }}
 
+/* --- УМНАЯ МАСКИРОВКА ХЕДЕРА --- */
+footer, #MainMenu {{ visibility: hidden; display: none; }}
+header[data-testid="stHeader"] {{
+    visibility: hidden !important; 
+    background: transparent !important;
+}}
+
+header[data-testid="stHeader"] button {{
+    visibility: visible !important; 
+    color: #8fa4bc !important; 
+}}
+
+/* -----------------------------------------------------------------
+   ПОЛНЫЙ МОБИЛЬНЫЙ АДАПТИВ ДЛЯ ГЛАВНОЙ СТРАНИЦЫ
+   ----------------------------------------------------------------- */
 @media (max-width: 768px) {{
+    /* Скрываем массивный десктопный фон */
+    .bg-img, .img3 {{
+        display: none !important;
+    }}
 
-
+    /* Компактный размер мобильного сайдбара-ленты */
     section[data-testid="stSidebar"] {{
         width: 125px !important;
         min-width: 125px !important;
         max-width: 125px !important;
-        background-color: #f8f9fa !important; /* Можно задать легкий фон для мобильной шторки */
     }}
 
-    /* Чуть-чуть уменьшаем плитки, чтобы они идеально вписывались в узкий экран смартфона */
+    /* Уменьшаем квадратные плитки меню */
     .nav-tile, [data-testid="stSidebar"] .stPageLink a {{
         width: 75px !important;
         height: 75px !important;
@@ -468,55 +446,41 @@ button[id*="btn_done_"]:disabled {{
         border-radius: 18px !important;
     }}
 
-    /* Пропорционально уменьшаем иконки внутри плиток */
+    /* Масштабируем иконки навигации */
     [data-testid="stSidebar"] .stPageLink a svg,
     [data-testid="stSidebar"] .stPageLink a i,
     [data-testid="stSidebar"] .stPageLink a span[translate="no"] {{
-        font-size: 30px !important; 
+        font-size: 30px !important;
         width: 30px !important;
         height: 30px !important;
         line-height: 30px !important;
     }}
-    
-    /* Сдвигаем контент страницы, чтобы при открытии сайдбара на мобилке ничего не ломалось */
-    [data-testid="stMain"] {{
-        margin-left: 0px !important;
-    }}
-    /* 1. Фоновые картинки (заяц, трубка) на мобилках будут перекрывать контент. Лучше их скрыть */
-    .bg-img, .img3 {{
-        display: none !important;
-    }}
 
-    /* 3. Кнопка "Добавить привычку" или "Поддержать" (были по 300px).
-       На мобилке пусть растягиваются на всю ширину экрана для удобного тапа пальцем */
+    /* Кнопка добавления цели на всю ширину смартфона */
     button[id*="add_habit_btn"], .stButton > button {{
         width: 100% !important;
         max-width: 100% !important;
     }}
 
-    /* 4. Заголовки страниц (были огромными — 32px с отступами по 100px). Сжимаем их */
+    /* Адаптируем заголовок */
     .page-header {{
         font-size: 24px !important;
         margin-top: 20px !important;
         margin-bottom: 30px !important;
     }}
 
-    /* 5. Карточки привычек на главной. 
-       Вместо фиксированных 210px сделаем их резиновыми */
+    /* Резиновые карточки на мобильных устройствах */
     .habit-card {{
         width: 100% !important;
-        max-width: 260px; /* Чтобы не были слишком гигантскими */
+        max-width: 260px;
         margin: 0 auto 15px auto !important;
     }}
 }}
-
 </style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-
 """, unsafe_allow_html=True)
 
-# ---------------- 4. НАДЕЖНЫЙ САЙДБАР (БЕЗ ИЗМЕНЕНИЙ) ----------------
+# ---------------- 4. НАДЕЖНЫЙ САЙДБАР ----------------
 with st.sidebar:
     st.markdown('<div class="nav-tile"><i class="material-icons" style="font-size:40px;">menu</i></div>',
                 unsafe_allow_html=True)
@@ -524,11 +488,6 @@ with st.sidebar:
     st.page_link("pages/profile2.py", label="Profile", icon=":material/person:")
     st.page_link("pages/settings2.py", label="Settings", icon=":material/settings:")
     st.page_link("pages/contacts2.py", label="Chat", icon=":material/chat:")
-
-if not st.session_state.user:
-    st.stop()
-
-USER_ID = st.session_state.user.get('id', 1)
 
 # ---------------- 5. ПРОВЕРКА АВТОРИЗАЦИИ ----------------
 if not st.session_state.user:
@@ -591,13 +550,9 @@ def add_habit_dialog():
     icon_key = [k for k, v in ICONS.items() if v == selected_icon_name][0]
 
     if st.button("Создать", use_container_width=True, type="primary"):
-        # ПРОВЕРКА ID: Извлекаем напрямую из сессии перед записью
         user_data = st.session_state.get('user')
-
-        # Если объекта user нет или id внутри него None/отсутствует
         current_id = user_data.get('id') if user_data else None
 
-        # Если id все еще None (например, в базе у юзера нет id), ставим 1 или выдаем ошибку
         if current_id is None:
             st.error("Ошибка: ID пользователя не найден. Попробуйте перезайти.")
             return
@@ -606,7 +561,6 @@ def add_habit_dialog():
             try:
                 conn = get_db_connection()
                 c = conn.cursor()
-                # Используем current_id, полученный прямо сейчас
                 c.execute(
                     "INSERT INTO habits (user_id, name, duration, icon_key) VALUES (?, ?, ?, ?)",
                     (current_id, name.strip(), duration, icon_key)
@@ -708,37 +662,28 @@ def habit_dialog(h_id, h_name, history):
 
     st.markdown(f"""
     <div style="display:flex; justify-content:center; gap:60px; margin-top:20px; margin-bottom:0px;">
-
-    <div style="display:flex; flex-direction:column; align-items:center;">
-    <div style="display:flex; align-items:center; gap:6px;">
-    {flame(today_done)} 
-    <span style="font-size:22px; font-weight:800;">{streak}</span>
-    </div>
-    <div style="margin-top:1px; font-size:13px; color:#667; line-height:1;">
-    текущая серия
-    </div>
-    </div>
-
-    <div style="display:flex; flex-direction:column; align-items:center;">
-    <div style="display:flex; align-items:center; gap:6px;">
-    {flame(True)} 
-    <span style="font-size:22px; font-weight:800;">{max_streak}</span>
-    </div>
-    <div style="margin-top:1px; font-size:13px; color:#667; line-height:1;">
-    максимальная серия
-    </div>
-    </div>
-
+        <div style="display:flex; flex-direction:column; align-items:center;">
+            <div style="display:flex; align-items:center; gap:6px;">
+                {flame(today_done)} 
+                <span style="font-size:22px; font-weight:800;">{streak}</span>
+            </div>
+            <div style="margin-top:1px; font-size:13px; color:#667; line-height:1;">текущая серия</div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center;">
+            <div style="display:flex; align-items:center; gap:6px;">
+                {flame(True)} 
+                <span style="font-size:22px; font-weight:800;">{max_streak}</span>
+            </div>
+            <div style="margin-top:1px; font-size:13px; color:#667; line-height:1;">максимальная серия</div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-
     st.write("---")
     if st.button("Удалить привычку", type="secondary", use_container_width=True):
         conn = get_db_connection()
         c = conn.cursor()
-        # Функция удаления чистая, всё ок
         c.execute("DELETE FROM habits WHERE id = ?", (h_id,))
         c.execute("DELETE FROM habit_logs WHERE habit_id = ?", (h_id,))
         conn.commit()
@@ -753,12 +698,9 @@ if st.session_state.open_habit_dialog and st.session_state.dialog_just_opened:
     st.session_state.dialog_just_opened = False
 
 # ---------------- 7. ГЛАВНЫЙ ЭКРАН ----------------
-# Заголовок и кнопка отдельно от карточек для четкого центрирования
 st.markdown('<div class="page-header">ГЛАВНАЯ</div>', unsafe_allow_html=True)
 
-# Обертка для кнопки
 col1, col2, col3 = st.columns([1, 2, 1])
-
 with col2:
     if st.button("Добавить привычку", type="primary", key="add_habit_btn", use_container_width=True):
         add_habit_dialog()
@@ -768,7 +710,6 @@ st.markdown('<div style="margin-bottom: 40px;"></div>', unsafe_allow_html=True)
 # Загрузка данных
 conn = get_db_connection()
 c = conn.cursor()
-
 c.execute("""
     SELECT h.id, h.name, h.duration, h.icon_key,
     (SELECT COUNT(*) FROM habit_logs WHERE habit_id = h.id AND status = 'done') as progress,
@@ -797,11 +738,9 @@ if habits:
                 </div>
             """, unsafe_allow_html=True)
 
-            # Замените старые b_col_space1, b_col1... на это:
             b_col_space1, b_col1, b_col2, b_col_space2 = st.columns(4)
 
             with b_col1:
-                # Кнопка календаря
                 if st.button("", icon=":material/calendar_month:", key=f"btn_info_{h_id}"):
                     conn = get_db_connection()
                     c = conn.cursor()
@@ -814,7 +753,6 @@ if habits:
                     st.rerun()
 
             with b_col2:
-                # Кнопка выполнения
                 if not t_status:
                     if st.button("", icon=":material/check_circle:", key=f"btn_check_{h_id}"):
                         conn = get_db_connection()
