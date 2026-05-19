@@ -68,7 +68,7 @@ if st.session_state.user:
     font_css = f"""
             <style>
                 .block-container {{
-                    padding-top: 2srem !important;
+                    padding-top: 2rem !important;
                     padding-bottom: 0rem !important;
                     position: relative;
                 }}
@@ -157,7 +157,18 @@ st.markdown("""
         padding-bottom: 0rem !important;
         position: relative;
     }
-    [data-testid="stHeader"] { background: rgba(0,0,0,0); }
+    
+    /* ХИТРАЯ МАСКИРОВКА ХЕДЕРА: прячем фон, но оставляем нативную кнопку */
+    footer, #MainMenu { visibility: hidden; display: none; }
+    header[data-testid="stHeader"] { 
+        visibility: hidden !important; 
+        background: transparent !important;
+    }
+    header[data-testid="stHeader"] button { 
+        visibility: visible !important; 
+        color: #8fa4bc !important; 
+    }
+
     [data-testid="stSidebarNav"] {display: none;}
     section[data-testid="stSidebar"] { width: 150px !important; min-width: 150px !important; }
 
@@ -189,11 +200,9 @@ st.markdown("""
 
     [data-testid="stSidebar"] .stPageLink a:hover { background-color: #70869d !important; transform: scale(1.05); }
 
-    header, footer, #MainMenu { visibility: hidden; display: none; }
-
     .settings-section { background: white; padding: 25px; border-radius: 20px; border: 1px solid #E0E6ED; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
-    /* Базовая карточка */
+    /* Карточки настроек */
     .inner-setting-card {
         background: #ffffff;
         border: 1px solid rgba(224, 230, 237, 0.5);
@@ -212,7 +221,6 @@ st.markdown("""
     
     .inner-setting-card { border: 1px solid #4A90E2; box-shadow: 0 8px 20px rgba(74, 144, 226, 0.38); }
 
-    
     .section-header {
         display: flex;
         align-items: center;
@@ -233,43 +241,6 @@ st.markdown("""
         font-weight: 700;
         letter-spacing: -0.5px;
     }
-    
-    
-    .report-card {
-        background: #ffffff;
-        border: 1px solid rgba(224, 230, 237, 0.5);
-        border-radius: 20px;
-        padding: 25px;
-        margin-bottom: 25px;
-        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03), 0 10px 15px -3px rgba(91, 141, 190, 0.05);
-    }
-
-    .report-card:hover {
-        transform: translateY(-5px);
-        border-color: rgba(91, 141, 190, 0.4);
-        box-shadow: 0 20px 25px -5px rgba(91, 141, 190, 0.15), 0 10px 10px -5px rgba(91, 141, 190, 0.1);
-    }
-    
-    .report-card { border: 1px solid #4A90E2; box-shadow: 0 8px 20px rgba(74, 144, 226, 0.38); }
-
-    .danger-card {
-        background: #ffffff;
-        border: 1px solid rgba(224, 230, 237, 0.5);
-        border-radius: 20px;
-        padding: 25px;
-        margin-bottom: 25px;
-        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03), 0 10px 15px -3px rgba(91, 141, 190, 0.05);
-    }
-
-    .danger-card:hover {
-        transform: translateY(-5px);
-        border-color: rgba(91, 141, 190, 0.4);
-        box-shadow: 0 20px 25px -5px rgba(91, 141, 190, 0.15), 0 10px 10px -5px rgba(91, 141, 190, 0.1);
-    }
-
-    .danger-card { border: 1px solid #4A90E2; box-shadow: 0 8px 20px rgba(74, 144, 226, 0.38); }
 
     .setting-label {
         font-weight: 600 !important;
@@ -279,65 +250,46 @@ st.markdown("""
         font-size: 20px !important; 
     }
 
-@media (max-width: 768px) {{
+    /* -----------------------------------------------------------------
+       ПОЛНЫЙ МОБИЛЬНЫЙ АДАПТИВ (МЕДИА-ЗАПРОСЫ)
+       ----------------------------------------------------------------- */
+    @media (max-width: 768px) {
+        /* Контролируем ширину шторки сайдбара на телефонах */
+        section[data-testid="stSidebar"] {
+            width: 125px !important;
+            min-width: 125px !important;
+            max-width: 125px !important;
+        }
 
+        /* Уменьшаем квадратные плитки меню под мобильный экран */
+        .nav-tile, [data-testid="stSidebar"] .stPageLink a {
+            width: 75px !important;
+            height: 75px !important;
+            margin: 12px auto !important;
+            border-radius: 18px !important;
+        }
 
-    section[data-testid="stSidebar"] {{
-        width: 125px !important;
-        min-width: 125px !important;
-        max-width: 125px !important;
-        background-color: #f8f9fa !important; /* Можно задать легкий фон для мобильной шторки */
-    }}
+        /* Масштабируем иконки внутри плиток */
+        [data-testid="stSidebar"] .stPageLink a svg,
+        [data-testid="stSidebar"] .stPageLink a i,
+        [data-testid="stSidebar"] .stPageLink a span[translate="no"] {
+            font-size: 30px !important; 
+            width: 30px !important;
+            height: 30px !important;
+            line-height: 30px !important;
+        }
 
-    /* Чуть-чуть уменьшаем плитки, чтобы они идеально вписывались в узкий экран смартфона */
-    .nav-tile, [data-testid="stSidebar"] .stPageLink a {{
-        width: 75px !important;
-        height: 75px !important;
-        margin: 12px auto !important;
-        border-radius: 18px !important;
-    }}
+        /* Кнопки настроек и экспорта растягиваем на мобилках для удобного тапа */
+        .stButton button, .stDownloadButton button {
+            width: 100% !important;
+            min-width: 100% !important;
+        }
 
-    /* Пропорционально уменьшаем иконки внутри плиток */
-    [data-testid="stSidebar"] .stPageLink a svg,
-    [data-testid="stSidebar"] .stPageLink a i,
-    [data-testid="stSidebar"] .stPageLink a span[translate="no"] {{
-        font-size: 30px !important; 
-        width: 30px !important;
-        height: 30px !important;
-        line-height: 30px !important;
-    }}
-    
-    /* Сдвигаем контент страницы, чтобы при открытии сайдбара на мобилке ничего не ломалось */
-    [data-testid="stMain"] {{
-        margin-left: 0px !important;
-    }}
-    /* 1. Фоновые картинки (заяц, трубка) на мобилках будут перекрывать контент. Лучше их скрыть */
-    .bg-img, .img3 {{
-        display: none !important;
-    }}
-
-    /* 3. Кнопка "Добавить привычку" или "Поддержать" (были по 300px).
-       На мобилке пусть растягиваются на всю ширину экрана для удобного тапа пальцем */
-    button[id*="add_habit_btn"], .stButton > button {{
-        width: 100% !important;
-        max-width: 100% !important;
-    }}
-
-    /* 4. Заголовки страниц (были огромными — 32px с отступами по 100px). Сжимаем их */
-    .page-header {{
-        font-size: 24px !important;
-        margin-top: 20px !important;
-        margin-bottom: 30px !important;
-    }}
-
-    /* 5. Карточки привычек на главной. 
-       Вместо фиксированных 210px сделаем их резиновыми */
-    .habit-card {{
-        width: 100% !important;
-        max-width: 260px; /* Чтобы не были слишком гигантскими */
-        margin: 0 auto 15px auto !important;
-    }}
-}}
+        /* Фиксим отступы заголовка на маленьких дисплеях */
+        .page-title {
+            margin-bottom: 40px !important;
+        }
+    }
         
 </style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -365,7 +317,7 @@ user_id = st.session_state.user['id']
 @st.dialog("Сброс привычек")
 def confirm_reset():
     st.write("Вы уверены, что хотите удалить **все привычки и прогресс**?")
-    if st.button("Да, удалить всё", use_container_width=True):  # Убрал type="primary" здесь, чтобы была красной по CSS
+    if st.button("Да, удалить всё", use_container_width=True):
         conn = get_db_connection()
         c = conn.cursor()
         c.execute("DELETE FROM habit_logs WHERE habit_id IN (SELECT id FROM habits WHERE user_id=?)", (user_id,))
@@ -449,7 +401,7 @@ with col2:
         file_name="Report.html",
         mime="text/html",
         use_container_width=True,
-        on_click=on_export_click  # <--- Вот эта строчка выдаст ачивку
+        on_click=on_export_click
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
