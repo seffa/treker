@@ -84,7 +84,7 @@ def img_to_base64(path):
 if st.session_state.user:
     u_id = st.session_state.user.get('id', 1)
     s_week, s_font = load_settings(u_id)
-    f_size = "14px" if s_font == "Мелкий" else "20px" if s_font == "Крупный" else "17px"
+    f_size = "14px" if s_font == "Мелкий" else "25px" if s_font == "Крупный" else "17px"
     fdw = 0 if s_week == 'Понедельник' else 6
 else:
     fdw, f_size =0, "17px"
@@ -448,6 +448,44 @@ button[id*="btn_done_"]:disabled {{
     color: #ffffff !important;
     border: none !important;
     opacity: 1 !important; /* Убираем стандартную прозрачность disabled */
+}}
+
+/* Все стили внутри этого блока сработают ТОЛЬКО на экранах меньше 768px (смартфоны и планшеты) */
+@media (max-width: 768px) {{
+
+    /* 1. Фоновые картинки (заяц, трубка) на мобилках будут перекрывать контент. Лучше их скрыть */
+    .bg-img, .img3 {{
+        display: none !important;
+    }}
+
+    /* 2. Сайдбар в Streamlit на мобилках убирается в верхний левый угол (гамбургер),
+       но из-за жесткой ширины 150px он может отображаться криво при открытии. Сбрасываем его: */
+    section[data-testid="stSidebar"] {{
+        width: 100% !important;
+        min-width: 100% !important;
+    }}
+
+    /* 3. Кнопка "Добавить привычку" или "Поддержать" (были по 300px).
+       На мобилке пусть растягиваются на всю ширину экрана для удобного тапа пальцем */
+    button[id*="add_habit_btn"], .stButton > button {{
+        width: 100% !important;
+        max-width: 100% !important;
+    }}
+
+    /* 4. Заголовки страниц (были огромными — 32px с отступами по 100px). Сжимаем их */
+    .page-header {{
+        font-size: 24px !important;
+        margin-top: 20px !important;
+        margin-bottom: 30px !important;
+    }}
+
+    /* 5. Карточки привычек на главной. 
+       Вместо фиксированных 210px сделаем их резиновыми */
+    .habit-card {{
+        width: 100% !important;
+        max-width: 260px; /* Чтобы не были слишком гигантскими */
+        margin: 0 auto 15px auto !important;
+    }}
 }}
 
 </style>
