@@ -73,7 +73,7 @@ if st.session_state.user:
     u_id = st.session_state.user.get('id', 1)
     s_week, s_font = load_settings(u_id)
     # Базовый размер для "Среднего" - 17px (как на главной странице)
-    f_size = "14px" if s_font == "Мелкий" else "20px" if s_font == "Крупный" else "17px"
+    f_size = "14px" if s_font == "Мелкий" else "25px" if s_font == "Крупный" else "17px"
 else:
     f_size = "17px"
 
