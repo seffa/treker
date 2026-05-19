@@ -422,58 +422,53 @@ header[data-testid="stHeader"] button {{
     color: #8fa4bc !important; 
 }}
 
-/* -----------------------------------------------------------------
-   ПОЛНЫЙ МОБИЛЬНЫЙ АДАПТИВ ДЛЯ ГЛАВНОЙ СТРАНИЦЫ
-   ----------------------------------------------------------------- */
+/* Все стили внутри этого блока сработают ТОЛЬКО на экранах меньше 768px */
 @media (max-width: 768px) {{
-    /* Скрываем массивный десктопный фон */
+
+    /* 1. Фоновые картинки скрываем, чтобы не мешали */
     .bg-img, .img3 {{
         display: none !important;
     }}
 
-    /* Компактный размер мобильного сайдбара-ленты */
+    /* 2. Сайдбар */
     section[data-testid="stSidebar"] {{
         width: 125px !important;
         min-width: 125px !important;
-        max-width: 125px !important;
     }}
 
-    /* Уменьшаем квадратные плитки меню */
-    .nav-tile, [data-testid="stSidebar"] .stPageLink a {{
-        width: 75px !important;
-        height: 75px !important;
-        margin: 12px auto !important;
-        border-radius: 18px !important;
+    /* 3. КНОПКИ И СЕТКА В ДИАЛОГОВОМ ОКНЕ (КАЛЕНДАРЬ) */
+    /* Запрещаем колонкам внутри модалки складываться в столбик */
+    div[data-testid="stDialog"] div[data-testid="stHorizontalBlock"] {{
+        display: flex !important;
+        flex-direction: row !important; /* Строго в ряд! */
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
     }}
 
-    /* Масштабируем иконки навигации */
-    [data-testid="stSidebar"] .stPageLink a svg,
-    [data-testid="stSidebar"] .stPageLink a i,
-    [data-testid="stSidebar"] .stPageLink a span[translate="no"] {{
-        font-size: 30px !important;
-        width: 30px !important;
-        height: 30px !important;
-        line-height: 30px !important;
+    /* Принудительно делим ширину колонок для дней недели и чисел на 7 частей */
+    div[data-testid="stDialog"] div[data-testid="stHorizontalBlock"]:has(div[style*="background"]) div[data-testid="column"],
+    div[data-testid="stDialog"] div[data-testid="stHorizontalBlock"]:has(span) div[data-testid="column"] {{
+        width: calc(100% / 7) !important;
+        min-width: calc(100% / 7) !important;
+        max-width: calc(100% / 7) !important;
+    }}
+    
+    /* Для кнопок навигации месяцев (3 колонки: стрелка, месяц, стрелка) */
+    div[data-testid="stDialog"] div[data-testid="stHorizontalBlock"]:has(button[id*="prev_"]) div[data-testid="column"] {{
+        width: auto !important;
+        flex: 1 !important;
     }}
 
-    /* Кнопка добавления цели на всю ширину смартфона */
-    button[id*="add_habit_btn"], .stButton > button {{
-        width: 100% !important;
-        max-width: 100% !important;
+    /* Уменьшаем паддинги в ячейках календаря, чтобы они не взрывались */
+    div[data-testid="stDialog"] div[style*="margin:4px"] {{
+        margin: 2px !important;
+        padding: 6px 2px !important;
+        font-size: 12px !important;
     }}
 
-    /* Адаптируем заголовок */
-    .page-header {{
-        font-size: 24px !important;
-        margin-top: 20px !important;
-        margin-bottom: 30px !important;
-    }}
-
-    /* Резиновые карточки на мобильных устройствах */
-    .habit-card {{
-        width: 100% !important;
-        max-width: 260px;
-        margin: 0 auto 15px auto !important;
+    /* 4. Фикс для блока с сериями (пламени), чтобы HTML не ломался */
+    div[style*="display:flex; justify-content:center; gap:60px;"] {{
+        gap: 20px !important; /* Уменьшаем гигантский отступ на мобилке */
     }}
 }}
 </style>
