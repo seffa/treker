@@ -18,11 +18,8 @@ def get_db_connection():
 
 
 def init_user_db():
-    # Устанавливаем соединение с твоей БД
     conn = sqlite3.connect('treker_bd.db', check_same_thread=False)
     c = conn.cursor()
-
-    # Запрос на создание таблицы user
     c.execute("""
         CREATE TABLE IF NOT EXISTS user (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,20 +27,22 @@ def init_user_db():
             password TEXT NOT NULL
         )
     """)
-
     conn.commit()
     conn.close()
 
 
-# Вызов функции при старте приложения
 init_user_db()
+
 
 def grant_achievement(user_id, ach_name):
     conn = sqlite3.connect('treker_bd.db', check_same_thread=False)
-    conn.execute("CREATE TABLE IF NOT EXISTS user_achievements (user_id INTEGER, achievement_name TEXT, PRIMARY KEY (user_id, achievement_name))")
-    conn.execute("INSERT OR IGNORE INTO user_achievements (user_id, achievement_name) VALUES (?, ?)", (user_id, ach_name))
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS user_achievements (user_id INTEGER, achievement_name TEXT, PRIMARY KEY (user_id, achievement_name))")
+    conn.execute("INSERT OR IGNORE INTO user_achievements (user_id, achievement_name) VALUES (?, ?)",
+                 (user_id, ach_name))
     conn.commit()
     conn.close()
+
 
 def load_settings(user_id):
     conn = get_db_connection()
@@ -62,10 +61,21 @@ def hash_password(password):
 def check_password(password, hashed):
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
+
 def img_to_base64(path):
     import base64
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
+
+
+# --- ЛОГИКА РАЗМЕРА ШРИФТА (как на главной) ---
+if st.session_state.user:
+    u_id = st.session_state.user.get('id', 1)
+    s_week, s_font = load_settings(u_id)
+    # Базовый размер для "Среднего" - 17px (как на главной странице)
+    f_size = "14px" if s_font == "Мелкий" else "20px" if s_font == "Крупный" else "17px"
+else:
+    f_size = "17px"
 
 img3 = img_to_base64("styles/love.jpg")
 
@@ -78,7 +88,7 @@ st.markdown(f"""
     pointer-events: none;
 }}
 
-.bg-img {{
+.bg-right {{
     right: 95px;
     width: 230px;
 }}
@@ -87,15 +97,16 @@ st.markdown(f"""
 <img class="bg-img bg-right" src="data:image/jpeg;base64,{img3}">
 """, unsafe_allow_html=True)
 
-# ---------------- 2. СТИЛИ (CSS) - ТВОИ ОРИГИНАЛЬНЫЕ РАЗМЕРЫ И РАССТОЯНИЯ ----------------
-st.markdown("""
+# ---------------- 2. СТИЛИ (CSS) - С ДИНАМИЧЕСКИМ ШРИФТОМ ----------------
+# Обрати внимание на calc(), который сохраняет оригинальные пропорции
+st.markdown(f"""
 <style>
     /* --- ОСНОВНЫЕ СТИЛИ ПРОФИЛЯ --- */
-    [data-testid="stHeader"] { background: rgba(0,0,0,0); }
-    [data-testid="stSidebarNav"] {display: none;}
-    section[data-testid="stSidebar"] { width: 150px !important; min-width: 150px !important; }
+    [data-testid="stHeader"] {{ background: rgba(0,0,0,0); }}
+    [data-testid="stSidebarNav"] {{display: none;}}
+    section[data-testid="stSidebar"] {{ width: 150px !important; min-width: 150px !important; }}
 
-    .nav-tile, [data-testid="stSidebar"] .stPageLink a {
+    .nav-tile, [data-testid="stSidebar"] .stPageLink a {{
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -108,102 +119,106 @@ st.markdown("""
         transition: all 0.3s ease !important;
         text-decoration: none !important;
         gap: 0 !important;
-    }
+    }}
 
-    [data-testid="stSidebar"] .stPageLink a div { display: flex !important; align-items: center !important; justify-content: center !important; }
-    [data-testid="stSidebar"] .stPageLink a p { display: none !important; }
-    [data-testid="stSidebar"] .stPageLink a[aria-current="page"] { background-color: #FF1493 !important; }
+    [data-testid="stSidebar"] .stPageLink a div {{ display: flex !important; align-items: center !important; justify-content: center !important; }}
+    [data-testid="stSidebar"] .stPageLink a p {{ display: none !important; }}
+    [data-testid="stSidebar"] .stPageLink a[aria-current="page"] {{ background-color: #FF1493 !important; }}
 
     [data-testid="stSidebar"] .stPageLink a svg,
     [data-testid="stSidebar"] .stPageLink a i,
-    [data-testid="stSidebar"] .stPageLink a span[translate="no"] {
+    [data-testid="stSidebar"] .stPageLink a span[translate="no"] {{
         font-size: 35px !important; width: 35px !important; height: 35px !important;
         line-height: 35px !important; margin: 0 !important; padding: 0 !important;
         display: block !important; fill: white !important; color: white !important;
-    }
+    }}
 
-    [data-testid="stSidebar"] .stPageLink a:hover {
+    [data-testid="stSidebar"] .stPageLink a:hover {{
         background-color: #70869d !important;
         transform: scale(1.05);
-    }
+    }}
 
-    .profile-container {
+    .profile-container {{
         background: #ffffff; padding: 40px 20px; border-radius: 30px;
         text-align: center; border: 1px solid #e0e6ed; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-    .profile-avatar {
+    }}
+    .profile-avatar {{
         width: 100px; height: 100px; margin: 0 auto 20px;
         background: linear-gradient(135deg, #5B8DBE, #4a7aa3);
         border-radius: 50%; display: flex; align-items: center; justify-content: center;
         color: white; font-size: 42px; font-weight: bold;
         box-shadow: 0 4px 10px rgba(91, 141, 190, 0.3);
-    }
-    .user-name { font-size: 24px; font-weight: 800; color: #334455; margin-bottom: 5px; }
-    .user-mail { font-size: 14px; color: #8899aa; margin-bottom: 25px; }
+    }}
 
-    .ach-section-title { font-size: 24px; font-weight: 700; color: #334455; margin-bottom: 25px; }
-    .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+    /* ДИНАМИЧЕСКИЕ РАЗМЕРЫ ШРИФТА: База = {f_size} (14px, 17px или 20px) */
+    .user-name {{ font-size: calc({f_size} + 7px); font-weight: 800; color: #334455; margin-bottom: 5px; }}
+    .user-mail {{ font-size: calc({f_size} - 3px); color: #8899aa; margin-bottom: 25px; }}
 
-    .ach-card {
+    /* Заголовок секции лучше оставить фиксированным или сделать чуть больше базы */
+    .ach-section-title {{ font-size: 24px; font-weight: 700; color: #334455; margin-bottom: 25px; }}
+    .ach-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }}
+
+    .ach-card {{
         background: white; border-radius: 24px; padding: 25px 15px;
         text-align: center; transition: 0.3s; min-height: 220px;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-    }
+    }}
 
-    .ach-icon-box { margin-bottom: 15px; }
-    .ach-icon-box .material-icons { font-size: 55px; }
+    .ach-icon-box {{ margin-bottom: 15px; }}
+    .ach-icon-box .material-icons {{ font-size: 55px; }}
 
-    .ach-name { font-size: 16px; font-weight: 800; color: #1A1C1F; margin-bottom: 8px; }
+    /* Применяем динамический размер к названиям и описаниям ачивок */
+    .ach-name {{ font-size: calc({f_size} - 1px); font-weight: 800; color: #1A1C1F; margin-bottom: 8px; }}
 
-    .ach-desc {
-        font-size: 12px; color: #445566 !important; font-weight: 500;
+    .ach-desc {{
+        font-size: calc({f_size} - 5px); color: #445566 !important; font-weight: 500;
         line-height: 1.3; margin-top: 5px; min-height: 32px;
         display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
         overflow: hidden; text-overflow: ellipsis;
-    }
+    }}
 
-    .locked { filter: grayscale(100%); opacity: 0.8; border: 4px dashed #ced4da; }
-    .unlocked { border: 2px solid #4A90E2; box-shadow: 0 8px 20px rgba(74, 144, 226, 0.38); }
+    .locked {{ filter: grayscale(100%); opacity: 0.8; border: 4px dashed #ced4da; }}
+    .unlocked {{ border: 2px solid #4A90E2; box-shadow: 0 8px 20px rgba(74, 144, 226, 0.38); }}
 
-    .progress-tag {
+    .progress-tag {{
         margin-top: 15px; font-size: 11px; font-weight: 700;
         background: #f0f2f6; padding: 4px 10px; border-radius: 12px; color: #334455;
-    }
+    }}
 
     button[kind="primary"], 
     [data-testid="stBaseButton-primary"],
-    [data-testid="stFormSubmitButton"] button {
+    [data-testid="stFormSubmitButton"] button {{
         background: linear-gradient(135deg, #5B8DBE, #4a7aa3) !important;
         border: none !important;
         border-radius: 16px !important;
         color: white !important;
         font-weight: 700 !important;
-        box-shadow: 0 4px 12px rgba(91, 141, 190, 0.25) !important;
+        box-shadow: 0 4px 12px rgba(91, 141, 190, 0.3) !important;
         transition: all 0.3s ease !important;
         height: auto !important;
         padding: 10px 20px !important;
-    }
+    }}
 
 /* Tabs */
-[data-baseweb="tab-highlight"] { background-color: #5B8DBE !important; }
-button[data-baseweb="tab"] div { color: #8fa4bc !important; }
-button[data-baseweb="tab"][aria-selected="true"] div { color: #5B8DBE !important; }
+[data-baseweb="tab-highlight"] {{ background-color: #5B8DBE !important; }}
+button[data-baseweb="tab"] div {{ color: #8fa4bc !important; }}
+button[data-baseweb="tab"][aria-selected="true"] div {{ color: #5B8DBE !important; }}
 
 /* Inputs */
-[data-baseweb="input"] { border-radius: 12px !important; }
-[data-baseweb="base-input"]:focus-within, [data-baseweb="input"]:focus-within {
+[data-baseweb="input"] {{ border-radius: 12px !important; }}
+[data-baseweb="base-input"]:focus-within, [data-baseweb="input"]:focus-within {{
     border-color: #5B8DBE !important;
     box-shadow: 0 0 0 1px #5B8DBE !important;
-}
+}}
 
-.stButton > button {
+.stButton > button {{
     background-color: #6B7B94 !important;
     color: white !important;
     border-radius: 12px !important;
     border: none !important;
     font-weight: 600 !important;
     transition: 0.2s ease;
-}
+}}
 
 </style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
