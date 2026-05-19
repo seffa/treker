@@ -60,7 +60,7 @@ img3 = img_to_base64("styles/call.png")
 if st.session_state.user:
     u_id = st.session_state.user.get('id', 1)
     _, s_font = load_settings(u_id)
-    f_size = "14px" if s_font == "Мелкий" else "20px" if s_font == "Крупный" else "17px"
+    f_size = "14px" if s_font == "Мелкий" else "25px" if s_font == "Крупный" else "17px"
 else:
     f_size = "17px"
 
@@ -132,7 +132,6 @@ st.markdown(f"""
         background-color: #70869d !important;
         transform: scale(1.05);
     }}
-    header, footer, #MainMenu {{ visibility: hidden; display: none; }}
 
     @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
@@ -236,69 +235,72 @@ st.markdown(f"""
         transform: scale(1.05) !important;
         box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
     }}
-
-@media (max-width: 768px) {{
-
-
-    section[data-testid="stSidebar"] {{
-        width: 125px !important;
-        min-width: 125px !important;
-        max-width: 125px !important;
-        background-color: #f8f9fa !important; /* Можно задать легкий фон для мобильной шторки */
-    }}
-
-    /* Чуть-чуть уменьшаем плитки, чтобы они идеально вписывались в узкий экран смартфона */
-    .nav-tile, [data-testid="stSidebar"] .stPageLink a {{
-        width: 75px !important;
-        height: 75px !important;
-        margin: 12px auto !important;
-        border-radius: 18px !important;
-    }}
-
-    /* Пропорционально уменьшаем иконки внутри плиток */
-    [data-testid="stSidebar"] .stPageLink a svg,
-    [data-testid="stSidebar"] .stPageLink a i,
-    [data-testid="stSidebar"] .stPageLink a span[translate="no"] {{
-        font-size: 30px !important; 
-        width: 30px !important;
-        height: 30px !important;
-        line-height: 30px !important;
-    }}
-    
-    /* Сдвигаем контент страницы, чтобы при открытии сайдбара на мобилке ничего не ломалось */
-    [data-testid="stMain"] {{
-        margin-left: 0px !important;
-    }}
-    /* 1. Фоновые картинки (заяц, трубка) на мобилках будут перекрывать контент. Лучше их скрыть */
-    .bg-img, .img3 {{
-        display: none !important;
-    }}
-
-    /* 3. Кнопка "Добавить привычку" или "Поддержать" (были по 300px).
-       На мобилке пусть растягиваются на всю ширину экрана для удобного тапа пальцем */
-    button[id*="add_habit_btn"], .stButton > button {{
-        width: 100% !important;
-        max-width: 100% !important;
-    }}
-
-    /* 4. Заголовки страниц (были огромными — 32px с отступами по 100px). Сжимаем их */
-    .page-header {{
-        font-size: 24px !important;
-        margin-top: 20px !important;
-        margin-bottom: 30px !important;
-    }}
-
-    /* 5. Карточки привычек на главной. 
-       Вместо фиксированных 210px сделаем их резиновыми */
-    .habit-card {{
-        width: 100% !important;
-        max-width: 260px; /* Чтобы не были слишком гигантскими */
-        margin: 0 auto 15px auto !important;
-    }}
-}}
-
 </style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+    /* --- УМНАЯ МАСКИРОВКА ХЕДЕРА --- */
+    footer, #MainMenu { visibility: hidden; display: none; }
+    header[data-testid="stHeader"] { 
+        visibility: hidden !important; 
+        background: transparent !important;
+    }
+    header[data-testid="stHeader"] button { 
+        visibility: visible !important; 
+        color: #8fa4bc !important; 
+    }
+
+    /* -----------------------------------------------------------------
+       ПОЛНЫЙ МОБИЛЬНЫЙ АДАПТИВ ДЛЯ СТРАНИЦЫ КОНТАКТОВ
+       ----------------------------------------------------------------- */
+    @media (max-width: 768px) {
+        /* Компактный размер мобильного сайдбара */
+        section[data-testid="stSidebar"] {
+            width: 125px !important;
+            min-width: 125px !important;
+            max-width: 125px !important;
+        }
+
+        /* Уменьшаем квадратные плитки меню */
+        .nav-tile, [data-testid="stSidebar"] .stPageLink a {
+            width: 75px !important;
+            height: 75px !important;
+            margin: 12px auto !important;
+            border-radius: 18px !important;
+        }
+
+        /* Масштабируем иконки навигации */
+        [data-testid="stSidebar"] .stPageLink a svg,
+        [data-testid="stSidebar"] .stPageLink a i,
+        [data-testid="stSidebar"] .stPageLink a span[translate="no"] {
+            font-size: 30px !important; 
+            width: 30px !important;
+            height: 30px !important;
+            line-height: 30px !important;
+        }
+
+        /* Скрываем фоновую картинку телефона/зайца, чтобы она не перекрывала карточки */
+        .img3 {
+            display: none !important;
+        }
+
+        /* Корректируем отступы заголовка */
+        .page-header {
+            font-size: 24px !important;
+            margin-top: 40px !important;
+            margin-bottom: 40px !important;
+        }
+
+        /* Кнопка "Поддержать создателей" на весь экран смартфона */
+        div.stButton, .stButton > button {
+            width: 100% !important;
+            min-width: 100% !important;
+            margin-top: 40px !important;
+        }
+    }
+</style>
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="page-header">КОНТАКТЫ</div>', unsafe_allow_html=True)
@@ -362,7 +364,7 @@ if st.session_state.user:
 else:
     st.info("Войдите в систему для получения достижений")
 
-# Картинка с зайцем/телефоном снизу
+# Картинка с зайцем/телефоном снизу (отображается на ПК, скрыта на мобильных через CSS)
 st.markdown(f"""
     <div class="img3">
         <img src="data:image/png;base64,{img3}">
