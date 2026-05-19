@@ -422,53 +422,96 @@ header[data-testid="stHeader"] button {{
     color: #8fa4bc !important; 
 }}
 
-/* Все стили внутри этого блока сработают ТОЛЬКО на экранах меньше 768px */
+/* -----------------------------------------------------------------
+   ПОЛНЫЙ МОБИЛЬНЫЙ АДАПТИВ (ВКЛЮЧАЯ ХИРУРГИЧЕСКИЙ ФИКС КАЛЕНДАРЯ)
+   ----------------------------------------------------------------- */
 @media (max-width: 768px) {{
-
-    /* 1. Фоновые картинки скрываем, чтобы не мешали */
     .bg-img, .img3 {{
         display: none !important;
     }}
 
-    /* 2. Сайдбар */
     section[data-testid="stSidebar"] {{
         width: 125px !important;
         min-width: 125px !important;
+        max-width: 125px !important;
     }}
 
-    /* 3. КНОПКИ И СЕТКА В ДИАЛОГОВОМ ОКНЕ (КАЛЕНДАРЬ) */
-    /* Запрещаем колонкам внутри модалки складываться в столбик */
+    .nav-tile, [data-testid="stSidebar"] .stPageLink a {{
+        width: 75px !important;
+        height: 75px !important;
+        margin: 12px auto !important;
+        border-radius: 18px !important;
+    }}
+
+    [data-testid="stSidebar"] .stPageLink a svg,
+    [data-testid="stSidebar"] .stPageLink a i,
+    [data-testid="stSidebar"] .stPageLink a span[translate="no"] {{
+        font-size: 30px !important;
+        width: 30px !important;
+        height: 30px !important;
+        line-height: 30px !important;
+    }}
+
+    button[id*="add_habit_btn"], .stButton > button {{
+        width: 100% !important;
+        max-width: 100% !important;
+    }}
+
+    .page-header {{
+        font-size: 24px !important;
+        margin-top: 20px !important;
+        margin-bottom: 30px !important;
+    }}
+
+    .habit-card {{
+        width: 100% !important;
+        max-width: 260px;
+        margin: 0 auto 15px auto !important;
+    }}
+
+    /* --- ЖЕСТКИЙ ФИКС ДЛЯ КАЛЕНДАРЯ В МОДАЛКЕ НА МОБИЛЬНЫХ --- */
     div[data-testid="stDialog"] div[data-testid="stHorizontalBlock"] {{
         display: flex !important;
-        flex-direction: row !important; /* Строго в ряд! */
+        flex-direction: row !important;
         flex-wrap: nowrap !important;
-        gap: 4px !important;
+        gap: 3px !important;
+        width: 100% !important;
     }}
 
-    /* Принудительно делим ширину колонок для дней недели и чисел на 7 частей */
-    div[data-testid="stDialog"] div[data-testid="stHorizontalBlock"]:has(div[style*="background"]) div[data-testid="column"],
-    div[data-testid="stDialog"] div[data-testid="stHorizontalBlock"]:has(span) div[data-testid="column"] {{
+    /* Фиксируем строки, где ровно 7 колонок (дни недели и числа) */
+    div[data-testid="stDialog"] div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-last-child(7):first-child) > div[data-testid="column"] {{
         width: calc(100% / 7) !important;
         min-width: calc(100% / 7) !important;
         max-width: calc(100% / 7) !important;
+        flex: 1 1 calc(100% / 7) !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }}
-    
-    /* Для кнопок навигации месяцев (3 колонки: стрелка, месяц, стрелка) */
-    div[data-testid="stDialog"] div[data-testid="stHorizontalBlock"]:has(button[id*="prev_"]) div[data-testid="column"] {{
+
+    /* Фиксируем строку переключения месяцев (3 колонки: стрелка, месяц, стрелка) */
+    div[data-testid="stDialog"] div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-last-child(3):first-child) > div[data-testid="column"] {{
         width: auto !important;
         flex: 1 !important;
     }}
 
-    /* Уменьшаем паддинги в ячейках календаря, чтобы они не взрывались */
+    /* Сжимаем ячейки с числами, чтобы помещались в один экран */
     div[data-testid="stDialog"] div[style*="margin:4px"] {{
-        margin: 2px !important;
-        padding: 6px 2px !important;
-        font-size: 12px !important;
+        margin: 2px 1px !important;
+        padding: 5px 1px !important;
+        font-size: 11px !important;
+        border-radius: 6px !important;
     }}
 
-    /* 4. Фикс для блока с сериями (пламени), чтобы HTML не ломался */
+    /* Корректируем индикатор галочки выполненного дня */
+    div[data-testid="stDialog"] div[style*="position:absolute"] {{
+        font-size: 8px !important;
+        bottom: 1px !important;
+        right: 2px !important;
+    }}
+
+    /* Сужаем отступы блока серий/пламени */
     div[style*="display:flex; justify-content:center; gap:60px;"] {{
-        gap: 20px !important; /* Уменьшаем гигантский отступ на мобилке */
+        gap: 25px !important;
     }}
 }}
 </style>
@@ -578,31 +621,30 @@ def habit_dialog(h_id, h_name, history):
     month, year = st.session_state[key_month], st.session_state[key_year]
 
     st.markdown(
-        "<h3 style='text-align:center; margin-bottom:10px; font-family: Tahoma; font-weight:800;'>КАЛЕНДАРЬ</h3>",
+        "<h3 style='text-align:center; margin-bottom:15px; font-family: Tahoma; font-weight:800;'>КАЛЕНДАРЬ</h3>",
         unsafe_allow_html=True
     )
 
+    # УБРАНА ОШИБКА РАЗМЕТКИ: Колонки навигации теперь чистые и симметричные без вложенности
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col1:
-        if st.button("←", key=f"prev_{h_id}"):
+        if st.button("←", key=f"prev_{h_id}", use_container_width=True):
             st.session_state[key_month] = 12 if month == 1 else month - 1
             st.session_state[key_year] = year - 1 if month == 1 else year
             st.rerun()
 
     with col2:
         st.markdown(
-            f"<div style='text-align:center; font-weight:600'>{calendar.month_name[month]} {year}</div>",
+            f"<div style='text-align:center; font-weight:600; line-height:2.4;'>{calendar.month_name[month]} {year}</div>",
             unsafe_allow_html=True
         )
 
     with col3:
-        c1, c2 = st.columns([1, 1])
-        with c2:
-            if st.button("→", key=f"next_{h_id}"):
-                st.session_state[key_month] = 1 if month == 12 else month + 1
-                st.session_state[key_year] = year + 1 if month == 12 else year
-                st.rerun()
+        if st.button("→", key=f"next_{h_id}", use_container_width=True):
+            st.session_state[key_month] = 1 if month == 12 else month + 1
+            st.session_state[key_year] = year + 1 if month == 12 else year
+            st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -644,7 +686,8 @@ def habit_dialog(h_id, h_name, history):
     streak, max_streak = calculate_streaks(history)
     today_done = today.isoformat() in history
 
-    flame = lambda active: f'<span class="material-icons" style="font-size:24px; color:{"#007AFF" if active else "#BCBCC2"}; vertical-align:middle;">local_fire_department</span>'
+    # Флаг приведен к компактной однострочной записи для стабильного рендеринга
+    flame = lambda active: f'<span style="font-family:\'Material Icons\'; font-size:24px; color:{"#007AFF" if active else "#BCBCC2"}; vertical-align:middle;">local_fire_department</span>'
 
     st.markdown(f"""
     <div style="display:flex; justify-content:center; gap:60px; margin-top:20px; margin-bottom:0px;">
