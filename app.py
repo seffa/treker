@@ -644,16 +644,7 @@ def habit_dialog(h_id, h_name, history):
     streak, max_streak = calculate_streaks(history)
     today_done = today.isoformat() in history
 
-    flame = lambda active: f"""
-    <span style="
-        font-family: 'Material Icons';
-        font-size:24px;
-        color:{'#007AFF' if active else '#BCBCC2'};
-        vertical-align:middle;
-    ">
-    local_fire_department
-    </span>
-    """
+    flame = lambda active: f'<span class="material-icons" style="font-size:24px; color:{"#007AFF" if active else "#BCBCC2"}; vertical-align:middle;">local_fire_department</span>'
 
     st.markdown(f"""
     <div style="display:flex; justify-content:center; gap:60px; margin-top:20px; margin-bottom:0px;">
