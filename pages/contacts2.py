@@ -10,7 +10,6 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 
-
 def grant_achievement(user_id, ach_name):
     try:
         conn = sqlite3.connect('treker_bd.db', check_same_thread=False)
@@ -21,7 +20,8 @@ def grant_achievement(user_id, ach_name):
                 PRIMARY KEY (user_id, achievement_name)
             )
         """)
-        conn.execute("INSERT OR IGNORE INTO user_achievements (user_id, achievement_name) VALUES (?, ?)", (user_id, ach_name))
+        conn.execute("INSERT OR IGNORE INTO user_achievements (user_id, achievement_name) VALUES (?, ?)",
+                     (user_id, ach_name))
         conn.commit()
         conn.close()
         return True
@@ -30,31 +30,58 @@ def grant_achievement(user_id, ach_name):
         return False
 
 
+# --- ФУНКЦИЯ ЗАГРУЗКИ НАСТРОЕК ДЛЯ ШРИФТА ---
+def load_settings(user_id):
+    try:
+        conn = sqlite3.connect('treker_bd.db', check_same_thread=False)
+        c = conn.cursor()
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS user_settings (
+                user_id INTEGER PRIMARY KEY, 
+                week_start TEXT DEFAULT 'Понедельник', 
+                font_size TEXT DEFAULT 'Средний'
+            )
+        """)
+        settings = c.execute("SELECT week_start, font_size FROM user_settings WHERE user_id=?", (user_id,)).fetchone()
+        conn.close()
+        return settings if settings else ('Понедельник', 'Средний')
+    except Exception:
+        return ('Понедельник', 'Средний')
+
 
 def img_to_base64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
+
 img3 = img_to_base64("styles/call.png")
 
-# ТВОИ СТИЛИ + ДОБАВЛЕНО СОКРЫТИЕ ЧЕКБОКСА
-st.markdown("""
+# --- ЛОГИКА ОПРЕДЕЛЕНИЯ РАЗМЕРА ШРИФТА ---
+if st.session_state.user:
+    u_id = st.session_state.user.get('id', 1)
+    _, s_font = load_settings(u_id)
+    f_size = "14px" if s_font == "Мелкий" else "20px" if s_font == "Крупный" else "17px"
+else:
+    f_size = "17px"
+
+# ТВОИ СТИЛИ С ДИНАМИЧЕСКИМ ШРИФТОМ (КОНФЛИКТЫ ИСКЛЮЧЕНЫ)
+st.markdown(f"""
 <style>
-    .block-container {
+    .block-container {{
         padding-top: 1rem !important;
         padding-bottom: 0rem !important;
         position: relative;
-    }
+    }}
 
-    [data-testid="stVerticalBlock"] > div:first-child {
+    [data-testid="stVerticalBlock"] > div:first-child {{
         margin-top: -30px !important; 
-    }
+    }}
 
-    [data-testid="stHeader"] { background: rgba(0,0,0,0); } 
-    [data-testid="stSidebarNav"] {display: none;}
-    section[data-testid="stSidebar"] { width: 150px !important; min-width: 150px !important; }
+    [data-testid="stHeader"] {{ background: rgba(0,0,0,0); }} 
+    [data-testid="stSidebarNav"] {{display: none;}}
+    section[data-testid="stSidebar"] {{ width: 150px !important; min-width: 150px !important; }}
 
-    .nav-tile, [data-testid="stSidebar"] .stPageLink a {
+    .nav-tile, [data-testid="stSidebar"] .stPageLink a {{
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -67,29 +94,29 @@ st.markdown("""
         transition: all 0.3s ease !important;
         text-decoration: none !important;
         gap: 0 !important; 
-    }
+    }}
 
-    [data-testid="stSidebar"] .stPageLink a div {
+    [data-testid="stSidebar"] .stPageLink a div {{
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-    }
+    }}
 
-    [data-testid="stSidebar"] .stPageLink a p {
+    [data-testid="stSidebar"] .stPageLink a p {{
         display: none !important;
         margin: 0 !important;
         padding: 0 !important;
         width: 0 !important;
         height: 0 !important;
-    }
+    }}
 
-    [data-testid="stSidebar"] .stPageLink a[aria-current="page"] { 
+    [data-testid="stSidebar"] .stPageLink a[aria-current="page"] {{ 
         background-color: #FF1493 !important; 
-    }
+    }}
 
     [data-testid="stSidebar"] .stPageLink a svg,
     [data-testid="stSidebar"] .stPageLink a i,
-    [data-testid="stSidebar"] .stPageLink a span[translate="no"] {
+    [data-testid="stSidebar"] .stPageLink a span[translate="no"] {{
         font-size: 35px !important; 
         width: 35px !important;
         height: 35px !important;
@@ -99,17 +126,17 @@ st.markdown("""
         display: block !important;
         fill: white !important; 
         color: white !important; 
-    }
+    }}
 
-    [data-testid="stSidebar"] .stPageLink a:hover {
+    [data-testid="stSidebar"] .stPageLink a:hover {{
         background-color: #70869d !important;
         transform: scale(1.05);
-    }
-    header, footer, #MainMenu { visibility: hidden; display: none; }
+    }}
+    header, footer, #MainMenu {{ visibility: hidden; display: none; }}
 
     @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
-    .page-header {
+    .page-header {{
         font-family: 'Tahoma' !important;
         font-size: 32px !important; 
         font-weight: 600 !important;
@@ -118,17 +145,17 @@ st.markdown("""
         text-transform: uppercase !important;
         margin-top: 70px !important;   
         margin-bottom: 100px !important;
-    }
+    }}
 
-    .dev-card {
+    .dev-card {{
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
         margin-bottom: 40px;
-    }
+    }}
 
-    .icon-circle {
+    .icon-circle {{
         background-color: #4A90E2 !important;
         width: 95px;
         height: 95px;
@@ -138,54 +165,62 @@ st.markdown("""
         justify-content: center;
         margin-bottom: 15px;
         box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
-    }
+    }}
 
-    .material-icons-custom {
+    .material-icons-custom {{
         font-family: 'Material Icons' !important;
         color: white !important;
         font-size: 48px !important;
         line-height: 1 !important;
-    }
+    }}
 
-    .dev-name {
+    /* ПРИМЕНЕНИЕ ДИНАМИЧЕСКОГО ШРИФТА К КАРТОЧКАМ */
+    .dev-name {{
         font-family: 'Tahoma', sans-serif !important;
-        font-size: 21px !important;
+        font-size: calc({f_size} + 4px) !important; /* Было 21px при базе 17px */
         font-weight: 700 !important;
         color: #2E4053 !important;
-    }
+    }}
 
-    .dev-role { font-family: 'Tahoma', sans-serif; font-size: 14px; color: #7F8C8D; }
-    .dev-email { font-family: 'Tahoma', sans-serif; font-size: 15px; color: #4A90E2; text-decoration: none; }
+    .dev-role {{ 
+        font-family: 'Tahoma', sans-serif !important; 
+        font-size: calc({f_size} - 3px) !important; /* Было 14px при базе 17px */
+        color: #7F8C8D !important; 
+    }}
 
+    .dev-email {{ 
+        font-family: 'Tahoma', sans-serif !important; 
+        font-size: calc({f_size} - 2px) !important; /* Было 15px при базе 17px */
+        color: #4A90E2 !important; 
+        text-decoration: none !important; 
+    }}
 
-    .img3 {
+    .img3 {{
         position: absolute;
         bottom: 400px; 
         left: 50%; 
         transform: translateX(-50%); 
         z-index: 1;
         pointer-events: none;
-    }
+    }}
 
-    .img3 img {
+    .img3 img {{
         width: 185px !important;
-    }
-    
-    /* Находим контейнер кнопки и заставляем его центровать содержимое */
-    div.stButton {
+    }}
+
+    div.stButton {{
         display: flex !important;
         margin-left: auto !important;
         margin-right: auto !important;
         width: fit-content !important;
         margin-top: 100px !important;
-    }
+    }}
 
-    /* Сама кнопка */
-    .stButton > button {
-        background-color: #8fa4bc !important; /* Цвет как у сайдбара */
+    .stButton > button {{
+        background-color: #8fa4bc !important; 
         color: white !important;
         padding: 12px 30px !important;
-        border-radius: 20px !important; /* Скругление как у плиток */
+        border-radius: 20px !important; 
         text-decoration: none !important;
         font-family: 'Tahoma', sans-serif !important;
         font-weight: 600 !important;
@@ -194,14 +229,13 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
         border: none !important;
         display: inline-block !important;
-    }
+    }}
 
-    .stButton > button:hover {
-        background-color: #70869d !important; /* Цвет ховера как у сайдбара */
+    .stButton > button:hover {{
+        background-color: #70869d !important; 
         transform: scale(1.05) !important;
         box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
-    }
-
+    }}
 </style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 """, unsafe_allow_html=True)
@@ -249,11 +283,7 @@ with col4:
 with col5:
     draw_contact("Григорян Нарек", "Дизайнер", "face_6", "narek02112020@gmail.com")
 
-
-# 1. Твоя кнопка чистым HTML/CSS. Без тега скрипта внутри (перенесли его в общий JS)
 if st.session_state.user:
-    # Создаем 3 колонки, средняя будет для кнопки
-    # Соотношение 1:2:1 или 1:1:1 поможет выровнять точно по центру
     _, center_col, _ = st.columns([1, 2, 1])
 
     with center_col:
