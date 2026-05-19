@@ -257,13 +257,6 @@ button[data-baseweb="tab"][aria-selected="true"] div {{ color: #5B8DBE !importan
         display: none !important;
     }}
 
-    /* 2. Сайдбар в Streamlit на мобилках убирается в верхний левый угол (гамбургер),
-       но из-за жесткой ширины 150px он может отображаться криво при открытии. Сбрасываем его: */
-    section[data-testid="stSidebar"] {{
-        width: 100% !important;
-        min-width: 100% !important;
-    }}
-
     /* 3. Кнопка "Добавить привычку" или "Поддержать" (были по 300px).
        На мобилке пусть растягиваются на всю ширину экрана для удобного тапа пальцем */
     button[id*="add_habit_btn"], .stButton > button {{
