@@ -450,19 +450,41 @@ button[id*="btn_done_"]:disabled {{
     opacity: 1 !important; /* Убираем стандартную прозрачность disabled */
 }}
 
-/* Все стили внутри этого блока сработают ТОЛЬКО на экранах меньше 768px (смартфоны и планшеты) */
 @media (max-width: 768px) {{
 
+
+    section[data-testid="stSidebar"] {{
+        width: 125px !important;
+        min-width: 125px !important;
+        max-width: 125px !important;
+        background-color: #f8f9fa !important; /* Можно задать легкий фон для мобильной шторки */
+    }}
+
+    /* Чуть-чуть уменьшаем плитки, чтобы они идеально вписывались в узкий экран смартфона */
+    .nav-tile, [data-testid="stSidebar"] .stPageLink a {{
+        width: 75px !important;
+        height: 75px !important;
+        margin: 12px auto !important;
+        border-radius: 18px !important;
+    }}
+
+    /* Пропорционально уменьшаем иконки внутри плиток */
+    [data-testid="stSidebar"] .stPageLink a svg,
+    [data-testid="stSidebar"] .stPageLink a i,
+    [data-testid="stSidebar"] .stPageLink a span[translate="no"] {{
+        font-size: 30px !important; 
+        width: 30px !important;
+        height: 30px !important;
+        line-height: 30px !important;
+    }}
+    
+    /* Сдвигаем контент страницы, чтобы при открытии сайдбара на мобилке ничего не ломалось */
+    [data-testid="stMain"] {{
+        margin-left: 0px !important;
+    }}
     /* 1. Фоновые картинки (заяц, трубка) на мобилках будут перекрывать контент. Лучше их скрыть */
     .bg-img, .img3 {{
         display: none !important;
-    }}
-
-    /* 2. Сайдбар в Streamlit на мобилках убирается в верхний левый угол (гамбургер),
-       но из-за жесткой ширины 150px он может отображаться криво при открытии. Сбрасываем его: */
-    section[data-testid="stSidebar"] {{
-        width: 100% !important;
-        min-width: 100% !important;
     }}
 
     /* 3. Кнопка "Добавить привычку" или "Поддержать" (были по 300px).
